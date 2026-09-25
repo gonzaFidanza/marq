@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import type { Channel, Classification, StageId } from '../types'
 import { CHANNELS, CLASSIFICATIONS, TEAM, stageById } from '../data/config'
 import { cn, initials } from '../lib/utils'
+import { LOGO_TAGLINE, LOGO_VIEWBOX, LOGO_WORDMARK } from './logo-paths'
 
 export function InstagramIcon(props: LucideProps) {
   const { size = 16, strokeWidth = 2, ...rest } = props
@@ -217,10 +218,20 @@ export function SparkleIcon({ size = 16, className }: { size?: number; className
   )
 }
 
-export function Logo({ size = 22, className }: { size?: number; className?: string }) {
+/** Logo oficial de MARQ. `compact` omite la bajada "CREAMOS VALOR" (para tamaños chicos). */
+export function Logo({ width = 120, compact = false, className }: { width?: number; compact?: boolean; className?: string }) {
   return (
-    <span className={cn('font-serif font-medium tracking-[0.18em] text-ink', className)} style={{ fontSize: size }}>
-      MARQ
-    </span>
+    <svg
+      viewBox={compact ? '60 80 1315 370' : LOGO_VIEWBOX}
+      width={width}
+      className={cn('block h-auto text-ink', className)}
+      fill="currentColor"
+      role="img"
+      aria-label="MARQ"
+    >
+      {(compact ? LOGO_WORDMARK : [...LOGO_WORDMARK, ...LOGO_TAGLINE]).map((d, i) => (
+        <path key={i} d={d} />
+      ))}
+    </svg>
   )
 }

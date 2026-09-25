@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowRight, Lock, Mail, ShieldCheck } from 'lucide-react'
 import { useStore } from '../store'
+import { Logo } from './ui'
 
 const HERO = 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=75'
 
@@ -65,10 +66,10 @@ export function Login() {
           transition={{ duration: 0.7, ease: 'easeOut' }}
           className="relative w-full max-w-[380px]"
         >
-          <motion.div initial={{ letterSpacing: '0.5em', opacity: 0 }} animate={{ letterSpacing: '0.24em', opacity: 1 }} transition={{ duration: 1.2 }}>
-            <span className="font-serif text-[54px] font-normal text-ink">MARQ</span>
+          <motion.div initial={{ opacity: 0, y: 8, filter: 'blur(6px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ duration: 1.2 }}>
+            <Logo width={210} />
           </motion.div>
-          <p className="mt-1 text-[13px] text-ink-3">Desarrollos inmobiliarios · Buenos Aires</p>
+          <p className="mt-4 text-[13px] text-ink-3">Desarrollos inmobiliarios · Buenos Aires</p>
 
           <div className="mt-12 space-y-3">
             <label className="block">

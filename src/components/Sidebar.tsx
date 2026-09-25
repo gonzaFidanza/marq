@@ -2,7 +2,7 @@ import { Inbox, SquareKanban, ChartColumn, Moon, Sun } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useStore, type View } from '../store'
 import { cn } from '../lib/utils'
-import { TeamAvatar } from './ui'
+import { Logo, TeamAvatar } from './ui'
 
 const NAV: { id: View; label: string; icon: typeof Inbox }[] = [
   { id: 'inbox', label: 'Bandeja', icon: Inbox },
@@ -20,7 +20,7 @@ export function Sidebar() {
   return (
     <aside className="relative z-20 flex w-[84px] shrink-0 flex-col items-center border-r border-line bg-surface/60 py-5 backdrop-blur-xl">
       <div className="flex flex-col items-center">
-        <span className="font-serif text-[17px] font-medium tracking-[0.2em] text-ink pl-[0.2em]">MARQ</span>
+        <Logo compact width={52} />
         <span className="mt-1 h-px w-6 bg-line-strong" />
       </div>
 
