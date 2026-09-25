@@ -1,0 +1,134 @@
+import type { Contact } from '../types'
+
+type SimTemplate = Omit<Contact, 'id' | 'messages' | 'stage' | 'stageSince' | 'unread' | 'assignee'> & {
+  incoming: string[]
+}
+
+export const SIMULATIONS: SimTemplate[] = [
+  {
+    name: 'Micaela Torres',
+    channel: 'instagram',
+    handle: '@mica.torres',
+    classification: 'nuevo',
+    confidence: 0.92,
+    tags: ['Primera vivienda', 'Busca 2 ambientes', 'Crédito hipotecario'],
+    developmentId: 'colegiales',
+    typology: '2 ambientes',
+    hue: 320,
+    summary: 'Primera vivienda, busca 2 ambientes en Colegiales y quiere usar crédito hipotecario.',
+    incoming: [
+      'Hola! vi el depto de 2 amb en Colegiales, aceptan crédito hipotecario? es para mi primera vivienda 🏠',
+    ],
+    history: [{ id: 'sh1', date: 'Ahora', title: 'Primera consulta por Instagram', kind: 'consulta', detail: 'Respondió a una historia del 2 ambientes' }],
+    draft:
+      '¡Hola Micaela! Gracias por escribirnos 😊 Sí, en MARQ Colegiales aceptamos crédito hipotecario: el 2 ambientes arranca en USD 142.000 y la escritura se coordina con el banco que elijas. Como es tu primera vivienda, te propongo que vengas al showroom a ver el departamento modelo y te armamos una simulación de cuotas a medida. ¿Te queda bien este sábado a la mañana?',
+    draftKind: 'respuesta',
+    followUp: {
+      text: '¡Buenísimo! El sábado a las 11 puedo, voy con mi novio 🙌',
+      delay: 4200,
+      meeting: { label: 'Sábado 11:00', detail: 'Showroom MARQ Colegiales' },
+    },
+  },
+  {
+    name: 'Jorge Pereyra',
+    channel: 'whatsapp',
+    phone: '+54 9 11 4731-0056',
+    classification: 'conocido',
+    confidence: 0.98,
+    tags: ['Cliente MARQ desde 2023', 'Inversor', 'Segunda compra'],
+    developmentId: 'nunez',
+    typology: 'Monoambiente',
+    hue: 30,
+    summary: 'Compró un 3 ambientes en MARQ Belgrano R en 2023. Quiere volver a invertir, orientado a renta.',
+    incoming: ['Hola Cande, soy Jorge, el que compró en MARQ Belgrano. Estoy pensando en invertir de nuevo, ¿qué tienen para renta?'],
+    history: [
+      { id: 'sh2', date: 'Ahora', title: 'Nueva consulta por WhatsApp', kind: 'consulta', detail: 'Quiere invertir para renta' },
+      { id: 'sh3', date: 'Feb 2024', title: 'Recibió su unidad', kind: 'compra', detail: 'MARQ Belgrano R · 3 amb 2°C' },
+      { id: 'sh4', date: 'May 2023', title: 'Firmó boleto', kind: 'compra', detail: 'USD 246.000 · atendido por Candelaria' },
+    ],
+    draft:
+      '¡Hola Jorge! Qué alegría saber de vos. ¿Cómo va todo en el depto de Belgrano R? Para renta te recomiendo mirar MARQ Núñez: los monoambientes arrancan en USD 105.000 y la entrega es en marzo 2027, ideal para temporario por la cercanía a Ciudad Universitaria. Como ya sos cliente MARQ, tenés un 3% de beneficio. ¿Te llamo mañana y lo charlamos?',
+    draftKind: 'respuesta',
+  },
+  {
+    name: 'Ariel B.',
+    channel: 'portal',
+    portal: 'Zonaprop',
+    email: 'arielb.1990@gmail.com',
+    classification: 'sin',
+    confidence: 0.28,
+    tags: ['Consulta desde aviso'],
+    developmentId: 'urquiza',
+    typology: 'Sin definir',
+    hue: 220,
+    summary: 'Consulta de una sola palabra desde el aviso. No hay datos suficientes todavía.',
+    incoming: ['Info'],
+    history: [{ id: 'sh5', date: 'Ahora', title: 'Consulta desde aviso de Zonaprop', kind: 'consulta', detail: 'MARQ Villa Urquiza' }],
+    draft:
+      '¡Hola Ariel! Gracias por tu consulta sobre MARQ Villa Urquiza. Para pasarte la info que más te sirva: ¿estás buscando para vivir o para invertir, y cuántos ambientes necesitás? Si querés, te mando ya la ficha completa con precios y planos.',
+    draftKind: 'respuesta',
+  },
+  {
+    name: 'Laura Méndez',
+    channel: 'mail',
+    email: 'laura.mendez@gmail.com',
+    phone: '+54 9 11 6203-4418',
+    classification: 'previo',
+    confidence: 0.94,
+    tags: ['Consultó en junio', 'Busca 3 ambientes', 'Vendió su propiedad'],
+    developmentId: 'urquiza',
+    typology: '3 ambientes',
+    hue: 170,
+    summary: 'Consultó en junio pero esperaba vender su departamento. Ya vendió y quiere avanzar con el 6° piso.',
+    incoming: [
+      'Hola, les escribí en junio por los 3 ambientes de Villa Urquiza. Finalmente vendimos nuestro departamento y ahora sí estamos listos para avanzar. ¿Sigue disponible la unidad del 6° piso?\n\nSaludos,\nLaura',
+    ],
+    history: [
+      { id: 'sh6', date: 'Ahora', title: 'Nueva consulta por mail', kind: 'consulta', detail: 'Lista para avanzar' },
+      { id: 'sh7', date: '02 jul', title: 'Conversación pausada', kind: 'sistema', detail: 'Esperaba vender su propiedad' },
+      { id: 'sh8', date: '20 jun', title: 'Se enviaron planos y ficha', kind: 'mensaje', detail: '3 amb 6°B · USD 197.000' },
+      { id: 'sh9', date: '18 jun', title: 'Primera consulta por mail', kind: 'consulta' },
+    ],
+    draft:
+      'Hola Laura, ¡qué buena noticia, felicitaciones por la venta! Me acuerdo de tu consulta de junio por el 3 ambientes 6°B de Villa Urquiza: te cuento que sigue disponible y mantiene el valor de USD 197.000 si reservás este mes. ¿Querés que coordinemos una visita al showroom esta semana para avanzar con la reserva?',
+    draftKind: 'respuesta',
+  },
+  {
+    name: 'Bruno Carrizo',
+    channel: 'whatsapp',
+    phone: '+54 9 11 5519-3302',
+    classification: 'nuevo',
+    confidence: 0.88,
+    tags: ['Vino recomendado por Sofía C.', 'Busca 2 ambientes', 'Pareja'],
+    developmentId: 'colegiales',
+    typology: '2 ambientes',
+    hue: 95,
+    summary: 'Recomendado por su hermana Sofía, que compró en Colegiales. Busca 2 ambientes para mudarse en pareja.',
+    incoming: ['Hola! Me recomendó mi hermana Sofía que compró con ustedes en Colegiales. Busco algo de 2 ambientes para mudarme con mi novia'],
+    history: [
+      { id: 'sh10', date: 'Ahora', title: 'Primera consulta por WhatsApp', kind: 'consulta', detail: 'Referido por Sofía Carrizo' },
+      { id: 'sh11', date: 'Ene 2026', title: 'Sofía Carrizo compró en Colegiales', kind: 'compra', detail: 'Relación detectada: hermana' },
+    ],
+    draft:
+      '¡Hola Bruno! Qué lindo que te haya recomendado Sofía, gracias por confiar en nosotros 😊 En MARQ Colegiales, el mismo edificio donde compró tu hermana, todavía tenemos 2 ambientes desde USD 142.000. Por venir referido tenés un beneficio especial en el anticipo. ¿Querés venir con tu novia a ver el modelo? Te propongo el jueves a la tarde.',
+    draftKind: 'respuesta',
+  },
+  {
+    name: 'Hernán Vidal',
+    channel: 'portal',
+    portal: 'Argenprop',
+    email: 'hvidal@gmail.com',
+    classification: 'nuevo',
+    confidence: 0.83,
+    tags: ['Busca 3 ambientes', 'Presupuesto USD 230k', 'Necesita cochera'],
+    developmentId: 'colegiales',
+    typology: '3 ambientes',
+    hue: 260,
+    summary: 'Busca 3 ambientes con balcón y cochera en Núñez o Belgrano, con presupuesto de hasta USD 230.000.',
+    incoming: ['Busco 3 ambientes con balcón y cochera, presupuesto hasta USD 230.000, zona Núñez o Belgrano. ¿Tienen algo?'],
+    history: [{ id: 'sh12', date: 'Ahora', title: 'Consulta desde Argenprop', kind: 'consulta' }],
+    draft:
+      'Hola Hernán, gracias por escribirnos. Con ese presupuesto, la mejor opción es el 3 ambientes de MARQ Colegiales: balcón corrido, cochera incluida y USD 215.000, a 10 minutos de Belgrano. En Belgrano R los 3 ambientes arrancan en USD 265.000. ¿Te mando los planos y coordinamos una llamada?',
+    draftKind: 'respuesta',
+  },
+]
