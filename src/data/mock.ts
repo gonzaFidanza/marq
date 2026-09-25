@@ -385,7 +385,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     hue: 350,
     summary: 'Se muda desde Córdoba por trabajo. Videollamada agendada para el lunes.',
     messages: [
-      m('c', 'Hola, me mudo a Buenos Aires en enero por trabajo y busco 3 ambientes listo para mudarse. ¿Se puede hacer una videollamada?', 3 * D),
+      m('c', 'Hola, me mudo a Resistencia en enero por trabajo y busco 3 ambientes listo para mudarse. ¿Se puede hacer una videollamada?', 3 * D),
       m('a', 'Hola Florencia, ¡claro! Belgrano R está terminado y con entrega inmediata. ¿Te parece el lunes a las 17 por Meet?', 3 * D - H, { by: 'julieta', viaDraft: true }),
       m('c', 'Genial, lunes 17 hs.', 2 * D),
     ],

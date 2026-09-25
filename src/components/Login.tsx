@@ -69,7 +69,7 @@ export function Login() {
           <motion.div initial={{ opacity: 0, y: 8, filter: 'blur(6px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ duration: 1.2 }}>
             <Logo width={210} />
           </motion.div>
-          <p className="mt-4 text-[13px] text-ink-3">Desarrollos inmobiliarios · Buenos Aires</p>
+          <p className="mt-4 text-[13px] text-ink-3">Desarrollos inmobiliarios · Resistencia</p>
 
           <div className="mt-12 space-y-3">
             <label className="block">
