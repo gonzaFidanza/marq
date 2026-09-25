@@ -19,7 +19,7 @@ export function Toasts() {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 60, scale: 0.95, transition: { duration: 0.2 } }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className="pointer-events-auto relative w-full overflow-hidden rounded-2xl border border-line bg-[var(--glass)] p-3.5 pr-10 shadow-float backdrop-blur-2xl"
+            className="pointer-events-auto relative w-full overflow-hidden rounded-2xl border border-line bg-surface p-3.5 pr-10 shadow-float"
           >
             <div className="flex gap-3">
               <div className="pt-0.5">

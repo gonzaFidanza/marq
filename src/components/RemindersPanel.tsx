@@ -32,7 +32,7 @@ export function RemindersPanel() {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-      className="absolute top-12 right-0 w-[420px] origin-top-right overflow-hidden rounded-2xl border border-line bg-[var(--glass)] shadow-float backdrop-blur-2xl"
+      className="absolute top-12 right-0 w-[420px] origin-top-right overflow-hidden rounded-2xl border border-line bg-surface shadow-float"
     >
       <div className="flex items-center gap-3 border-b border-line px-5 py-4">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
