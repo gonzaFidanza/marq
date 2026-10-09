@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { FileText, Lightbulb, Megaphone, Radar, ShieldCheck } from 'lucide-react'
+import { FileText, Megaphone, Radar, ShieldCheck } from 'lucide-react'
 import { useStore, type AttractionTab } from '../../store'
 import { Kbd } from '../../components/ui'
 import { cn } from '../../lib/utils'
@@ -20,7 +20,6 @@ export function Attraction() {
   const active = useStore((s) => s.campaigns.filter((c) => c.status === 'activa').length)
   const generate = useStore((s) => s.generateCampaign)
   const generating = useStore((s) => !!s.generating)
-  const setWhyOpen = useStore((s) => s.setWhyOpen)
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -72,12 +71,6 @@ export function Attraction() {
         </span>
 
         <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={() => setWhyOpen(true)}
-            className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-[12.5px] font-medium text-ink-2 transition hover:bg-surface-2 hover:text-ink"
-          >
-            <Lightbulb size={14} /> ¿Por qué este módulo?
-          </button>
           <motion.button
             onClick={() => generate()}
             disabled={generating}

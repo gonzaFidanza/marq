@@ -36,7 +36,6 @@ interface State {
   attractionTab: AttractionTab
   selectedDraftId: string
   campaignDrawerId: string | null
-  whyOpen: boolean
   generating: { step: number } | null
   genIndex: number
   signalFocus: string | null
@@ -81,7 +80,6 @@ interface State {
   confirmDraftDiscard: (reason: string) => void
   cancelDraftDiscard: () => void
   openCampaign: (id: string | null) => void
-  setWhyOpen: (o: boolean) => void
   focusSignal: (id: string) => void
   reportConversion: (id: string, stage: StageId, from: StageId) => void
   removeBeam: (id: string) => void
@@ -128,7 +126,6 @@ export const useStore = create<State>((set, get) => {
     attractionTab: 'borradores',
     selectedDraftId: INITIAL_DRAFTS[0].id,
     campaignDrawerId: null,
-    whyOpen: false,
     generating: null,
     genIndex: 0,
     signalFocus: null,
@@ -341,8 +338,7 @@ export const useStore = create<State>((set, get) => {
         metaUnseen: 0,
         drawerId: null,
         campaignDrawerId: null,
-        whyOpen: false,
-        ...(template ? {} : { genIndex: i + 1 }),
+            ...(template ? {} : { genIndex: i + 1 }),
       })
       ;[1, 2, 3].forEach((step) => setTimeout(() => set({ generating: { step } }), step * 950))
       setTimeout(() => {
@@ -419,7 +415,6 @@ export const useStore = create<State>((set, get) => {
     cancelDraftDiscard: () => set({ pendingDraftDiscard: null }),
 
     openCampaign: (campaignDrawerId) => set({ campaignDrawerId }),
-    setWhyOpen: (whyOpen) => set({ whyOpen }),
     focusSignal: (id) => {
       set({ view: 'attraction', attractionTab: 'senales', signalFocus: id })
       setTimeout(() => {

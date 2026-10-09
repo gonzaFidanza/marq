@@ -11,7 +11,7 @@ import { Metrics } from './views/Metrics'
 import { CardDrawer, DiscardModal } from './views/Overlays'
 import { Attraction } from './views/attraction/Attraction'
 import { CampaignDrawer } from './views/attraction/Campaigns'
-import { DraftDiscardModal, WhyModal } from './views/attraction/Overlays'
+import { DraftDiscardModal } from './views/attraction/Overlays'
 import { Beams } from './components/Beams'
 
 export default function App() {
@@ -20,7 +20,6 @@ export default function App() {
   const drawerId = useStore((s) => s.drawerId)
   const pendingDiscard = useStore((s) => s.pendingDiscard)
   const campaignDrawerId = useStore((s) => s.campaignDrawerId)
-  const whyOpen = useStore((s) => s.whyOpen)
   const pendingDraftDiscard = useStore((s) => s.pendingDraftDiscard)
 
   // Presentation mode: N simula una consulta entrante, C genera una propuesta de campaña
@@ -41,7 +40,6 @@ export default function App() {
         s.openDrawer(null)
         s.setRemindersOpen(false)
         s.openCampaign(null)
-        s.setWhyOpen(false)
         s.cancelDraftDiscard()
       }
     }
@@ -85,7 +83,6 @@ export default function App() {
       <AnimatePresence>{drawerId && <CardDrawer key={drawerId} id={drawerId} />}</AnimatePresence>
       <AnimatePresence>{pendingDiscard && <DiscardModal key="discard" id={pendingDiscard} />}</AnimatePresence>
       <AnimatePresence>{campaignDrawerId && <CampaignDrawer key={campaignDrawerId} id={campaignDrawerId} />}</AnimatePresence>
-      <AnimatePresence>{whyOpen && <WhyModal key="why" />}</AnimatePresence>
       <AnimatePresence>{pendingDraftDiscard && <DraftDiscardModal key="ddiscard" id={pendingDraftDiscard} />}</AnimatePresence>
       <Beams />
       <Toasts />
