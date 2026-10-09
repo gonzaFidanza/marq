@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { animate, motion } from 'framer-motion'
-import { ArrowDownRight, ArrowUpRight, CalendarRange, ShieldCheck, Moon, FileText, BellRing, Inbox } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, CalendarRange, ShieldCheck, Moon, FileText, BellRing, Inbox, ChartColumn, Megaphone } from 'lucide-react'
+import { AttractionMetrics } from './AttractionMetrics'
 import {
   Area,
   AreaChart,
@@ -19,7 +20,7 @@ import { SparkleIcon } from '../components/ui'
 import { cn } from '../lib/utils'
 import type { Channel } from '../types'
 
-function Counter({ to, decimals = 0, duration = 1.4, suffix = '' }: { to: number; decimals?: number; duration?: number; suffix?: string }) {
+export function Counter({ to, decimals = 0, duration = 1.4, suffix = '' }: { to: number; decimals?: number; duration?: number; suffix?: string }) {
   const [v, setV] = useState(0)
   useEffect(() => {
     const ctrl = animate(0, to, { duration, ease: [0.16, 1, 0.3, 1], onUpdate: setV })
@@ -33,8 +34,8 @@ function Counter({ to, decimals = 0, duration = 1.4, suffix = '' }: { to: number
   )
 }
 
-const card = 'rounded-[24px] border border-line bg-surface p-5 shadow-soft'
-const fade = (i: number) => ({
+export const card = 'rounded-[24px] border border-line bg-surface p-5 shadow-soft'
+export const fade = (i: number) => ({
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
   transition: { delay: 0.06 * i, duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
@@ -78,20 +79,48 @@ const fmtH = (h: number) => (h >= 1 ? `${h.toLocaleString('es-AR', { maximumFrac
 const CH_ORDER: Channel[] = ['whatsapp', 'instagram', 'portal', 'mail']
 
 export function Metrics() {
+  const [tab, setTab] = useState<'general' | 'atraccion'>('general')
+
+  return (
+    <div className="scroll-soft h-full overflow-y-auto">
+      <div className="mx-auto max-w-[1320px] px-7 pt-6 pb-10">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-xl border border-line bg-surface/70 p-1 shadow-soft">
+            {(['general', 'atraccion'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={cn('relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-medium transition-colors', tab === t ? 'text-ink' : 'text-ink-3 hover:text-ink')}
+              >
+                {tab === t && <motion.span layoutId="metrics-tab" className="absolute inset-0 rounded-lg bg-surface-2 shadow-soft" />}
+                <span className="relative flex items-center gap-1.5">
+                  {t === 'general' ? <ChartColumn size={14} /> : <Megaphone size={14} />}
+                  {t === 'general' ? 'Equipo comercial' : 'Atracción'}
+                </span>
+              </button>
+            ))}
+          </div>
+          <span className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-[12.5px] font-medium text-ink shadow-soft">
+            <CalendarRange size={14} className="text-ink-3" /> Últimos 30 días
+          </span>
+          <span className="text-[12.5px] text-ink-3">
+            {tab === 'general' ? 'Comparado con los 30 días previos a activar el asistente' : 'Cada campaña, medida por las reuniones que consigue'}
+          </span>
+        </div>
+        {tab === 'general' ? <GeneralMetrics /> : <AttractionMetrics />}
+      </div>
+    </div>
+  )
+}
+
+function GeneralMetrics() {
   const dark = useStore((s) => s.dark)
   const stats = useStore((s) => s.stats)
   const axis = dark ? '#736d63' : '#9a948a'
   const grid = dark ? '#2d2a25' : '#ece7df'
 
   return (
-    <div className="scroll-soft h-full overflow-y-auto">
-      <div className="mx-auto max-w-[1320px] px-7 pt-6 pb-10">
-        <div className="mb-5 flex items-center gap-3">
-          <span className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-[12.5px] font-medium text-ink shadow-soft">
-            <CalendarRange size={14} className="text-ink-3" /> Últimos 30 días
-          </span>
-          <span className="text-[12.5px] text-ink-3">Comparado con los 30 días previos a activar el asistente</span>
-        </div>
+    <>
 
         {/* KPI row */}
         <div className="grid grid-cols-12 gap-4">
@@ -261,12 +290,11 @@ export function Metrics() {
             </div>
           </motion.div>
         </div>
-      </div>
-    </div>
+    </>
   )
 }
 
-function Kpi({
+export function Kpi({
   i,
   label,
   value,
@@ -305,7 +333,7 @@ function Kpi({
   )
 }
 
-function ChartTitle({ title, sub }: { title: string; sub: string }) {
+export function ChartTitle({ title, sub }: { title: string; sub: string }) {
   return (
     <div>
       <p className="font-serif text-[18px] text-ink">{title}</p>

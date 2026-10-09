@@ -9,14 +9,21 @@ import { Inbox } from './views/Inbox'
 import { Board } from './views/Board'
 import { Metrics } from './views/Metrics'
 import { CardDrawer, DiscardModal } from './views/Overlays'
+import { Attraction } from './views/attraction/Attraction'
+import { CampaignDrawer } from './views/attraction/Campaigns'
+import { DraftDiscardModal, WhyModal } from './views/attraction/Overlays'
+import { Beams } from './components/Beams'
 
 export default function App() {
   const loggedIn = useStore((s) => s.loggedIn)
   const view = useStore((s) => s.view)
   const drawerId = useStore((s) => s.drawerId)
   const pendingDiscard = useStore((s) => s.pendingDiscard)
+  const campaignDrawerId = useStore((s) => s.campaignDrawerId)
+  const whyOpen = useStore((s) => s.whyOpen)
+  const pendingDraftDiscard = useStore((s) => s.pendingDraftDiscard)
 
-  // Presentation mode: press N to simulate an incoming inquiry
+  // Presentation mode: N simula una consulta entrante, C genera una propuesta de campaña
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
@@ -25,12 +32,17 @@ export default function App() {
       const s = useStore.getState()
       if (!s.loggedIn) return
       if (e.key === 'n' || e.key === 'N') s.simulateIncoming()
+      if (e.key === 'c' || e.key === 'C') s.generateCampaign()
       if (e.key === '1') s.setView('inbox')
       if (e.key === '2') s.setView('board')
-      if (e.key === '3') s.setView('metrics')
+      if (e.key === '3') s.setView('attraction')
+      if (e.key === '4') s.setView('metrics')
       if (e.key === 'Escape') {
         s.openDrawer(null)
         s.setRemindersOpen(false)
+        s.openCampaign(null)
+        s.setWhyOpen(false)
+        s.cancelDraftDiscard()
       }
     }
     window.addEventListener('keydown', onKey)
@@ -62,6 +74,7 @@ export default function App() {
                 >
                   {view === 'inbox' && <Inbox />}
                   {view === 'board' && <Board />}
+                  {view === 'attraction' && <Attraction />}
                   {view === 'metrics' && <Metrics />}
                 </motion.div>
               </AnimatePresence>
@@ -71,6 +84,10 @@ export default function App() {
       )}
       <AnimatePresence>{drawerId && <CardDrawer key={drawerId} id={drawerId} />}</AnimatePresence>
       <AnimatePresence>{pendingDiscard && <DiscardModal key="discard" id={pendingDiscard} />}</AnimatePresence>
+      <AnimatePresence>{campaignDrawerId && <CampaignDrawer key={campaignDrawerId} id={campaignDrawerId} />}</AnimatePresence>
+      <AnimatePresence>{whyOpen && <WhyModal key="why" />}</AnimatePresence>
+      <AnimatePresence>{pendingDraftDiscard && <DraftDiscardModal key="ddiscard" id={pendingDraftDiscard} />}</AnimatePresence>
+      <Beams />
       <Toasts />
     </>
   )

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUpRight, Check, ChevronDown, Mail, Phone, AtSign, Loader2, Building2, CalendarDays, MessageSquare, KeyRound, FileText, Eye, Info } from 'lucide-react'
+import { ArrowUpRight, Megaphone, Check, ChevronDown, Mail, Phone, AtSign, Loader2, Building2, CalendarDays, MessageSquare, KeyRound, FileText, Eye, Info } from 'lucide-react'
 import { useStore } from '../store'
 import type { Classification, Contact, HistoryItem } from '../types'
 import { Avatar, ChannelPill, SparkleIcon, StagePill } from '../components/ui'
-import { CLASSIFICATIONS, devById, stageById } from '../data/config'
-import { cn, stageAgeLabel, usd } from '../lib/utils'
+import { CLASSIFICATIONS, devById, priceFor, stageById } from '../data/config'
+import { cn, dayLabel, stageAgeLabel, usd } from '../lib/utils'
+import { MiniAd, OriginChip } from '../components/attraction-ui'
+import { ORIGINS, originOf } from '../data/attraction'
 
 const section = {
   hidden: { opacity: 0, y: 10 },
@@ -88,8 +90,14 @@ export function ContactPanel({ c }: { c: Contact }) {
           )}
         </motion.div>
 
-        {/* Development */}
+        {/* Origin */}
         <motion.div custom={3} variants={section} className="mt-6">
+          <Label>Origen</Label>
+          <OriginCard c={c} />
+        </motion.div>
+
+        {/* Development */}
+        <motion.div custom={4} variants={section} className="mt-6">
           <Label>Desarrollo de interés</Label>
           <div className="group overflow-hidden rounded-2xl border border-line bg-surface shadow-soft transition hover:shadow-card">
             <div className="relative h-[108px] overflow-hidden" style={{ background: dev.gradient }}>
@@ -113,7 +121,7 @@ export function ContactPanel({ c }: { c: Contact }) {
                 <Building2 size={13} className="text-ink-3" /> {c.typology}
               </span>
               <span className="font-medium text-ink">
-                desde {usd((dev.typologies.find((t) => c.typology.startsWith(t.label.split(' ')[0])) ?? dev.typologies[0]).from)}
+                desde {usd(priceFor(c.developmentId, c.typology))}
               </span>
             </div>
             {dev.progress < 100 && (
@@ -136,7 +144,7 @@ export function ContactPanel({ c }: { c: Contact }) {
         </motion.div>
 
         {/* Stage */}
-        <motion.div custom={4} variants={section} className="mt-6">
+        <motion.div custom={5} variants={section} className="mt-6">
           <Label>Etapa en el tablero</Label>
           <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-soft">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: stage.color + '1f', color: stage.color }}>
@@ -156,12 +164,55 @@ export function ContactPanel({ c }: { c: Contact }) {
         </motion.div>
 
         {/* Timeline */}
-        <motion.div custom={5} variants={section} className="mt-6">
+        <motion.div custom={6} variants={section} className="mt-6">
           <Label>Historial</Label>
           <Timeline items={c.history} />
         </motion.div>
       </motion.div>
     </aside>
+  )
+}
+
+const ORIGIN_DESC: Record<string, string> = {
+  recomendacion: 'Llegó por la recomendación de alguien que conoce a MARQ.',
+  organico: 'Llegó por su cuenta: redes, web o pasando por la obra.',
+  portal: 'Llegó desde un aviso en un portal inmobiliario.',
+  cliente: 'Ya es cliente MARQ: volvió por su cuenta.',
+}
+
+function OriginCard({ c }: { c: Contact }) {
+  const campaign = useStore((s) => s.campaigns.find((x) => x.id === c.campaignId))
+  const o = originOf(c)
+  if (o !== 'campana' || !campaign) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-soft">
+        <OriginChip c={c} size="sm" />
+        <p className="text-[11.5px] leading-snug text-ink-3">{ORIGIN_DESC[o]}</p>
+      </div>
+    )
+  }
+  const dl = dayLabel(c.messages[0]?.at ?? Date.now())
+  const when = dl === 'Hoy' ? 'hoy' : dl === 'Ayer' ? 'ayer' : `el ${dl.toLowerCase()}`
+  const open = () => useStore.setState({ view: 'attraction', attractionTab: 'campanas', campaignDrawerId: campaign.id, drawerId: null, metaUnseen: 0 })
+  return (
+    <div className="flex gap-3 rounded-2xl border bg-surface p-3 shadow-soft" style={{ borderColor: ORIGINS.campana.color + '40' }}>
+      <MiniAd developmentId={campaign.developmentId} text={campaign.adText} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <p className="flex items-start gap-1.5 text-[12.5px] leading-snug font-semibold" style={{ color: ORIGINS.campana.color }}>
+          <Megaphone size={13} className="mt-0.5 shrink-0" /> Camp. {campaign.name}
+        </p>
+        <p className="mt-2 text-[12px] leading-snug text-ink-2">
+          Vio este anuncio y escribió <b className="font-semibold text-ink">{when}</b>.
+        </p>
+        <p className="mt-1 text-[11px] text-ink-3">Pauta en Instagram y Facebook</p>
+        <button
+          onClick={open}
+          className="mt-auto flex w-fit items-center gap-1 rounded-lg px-1.5 py-1 text-[12px] font-medium text-accent transition hover:bg-accent-soft"
+        >
+          Ver campaña <ArrowUpRight size={13} />
+        </button>
+      </div>
+    </div>
   )
 }
 

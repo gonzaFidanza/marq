@@ -68,6 +68,76 @@ export interface Contact {
   fresh?: boolean
   followUp?: FollowUp
   contactTyping?: boolean
+  /** Atribución: campaña de pauta que lo trajo */
+  campaignId?: string
+  /** Origen cuando no viene de pauta */
+  origin?: Origin
+  originDate?: string
+}
+
+export type Origin = 'campana' | 'recomendacion' | 'organico' | 'portal' | 'cliente'
+export type Profile = 'primera' | 'inversor' | 'conocido' | 'recomendado' | 'amplio'
+export type CampaignStatus = 'activa' | 'pausada' | 'finalizada'
+export type ConversionEvent = 'Reunión programada' | 'Reunión realizada' | 'Reserva'
+
+export interface Conversion {
+  id: string
+  contactId?: string
+  name: string
+  event: ConversionEvent
+  at: number
+}
+
+export interface Campaign {
+  id: string
+  name: string
+  developmentId: string
+  typology: string
+  profile: Profile
+  status: CampaignStatus
+  startedAt: number
+  days: number
+  budget: number
+  spent: number
+  inquiries: number
+  meetingsScheduled: number
+  meetingsDone: number
+  reservations: number
+  conversions: Conversion[]
+  adText: string
+  fresh?: boolean
+  /** Costo por reunión antes de la última conversión, para animar la baja */
+  prevCpm?: number
+  droppedAt?: number
+}
+
+/** Tramo del texto de un anuncio. Si tiene `q`, responde una pregunta frecuente. */
+export interface AdSegment {
+  t: string
+  q?: string
+  pct?: number
+}
+
+export type DraftStatus = 'pendiente' | 'aprobado' | 'editado' | 'descartado'
+
+export interface CampaignDraft {
+  id: string
+  template: string
+  developmentId: string
+  typology: string
+  profile: Profile
+  budget: number
+  days: number
+  status: DraftStatus
+  edited?: boolean
+  createdAt: number
+  segments: AdSegment[]
+  cta: 'Enviar mensaje' | 'Más información'
+  reasoning: string
+  signals: { id: string; label: string }[]
+  discardReason?: string
+  campaignId?: string
+  fresh?: boolean
 }
 
 export interface Development {
@@ -87,7 +157,8 @@ export interface Toast {
   id: string
   title: string
   body?: string
-  tone?: 'default' | 'success' | 'incoming' | 'celebrate' | 'muted'
+  tone?: 'default' | 'success' | 'incoming' | 'celebrate' | 'muted' | 'meta'
   channel?: Channel
+  campaignId?: string
   action?: { label: string; contactId: string }
 }

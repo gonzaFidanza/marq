@@ -1,4 +1,6 @@
 import type { Contact } from '../types'
+import { priceFor } from './config'
+import { usd } from '../lib/utils'
 
 type SimTemplate = Omit<Contact, 'id' | 'messages' | 'stage' | 'stageSince' | 'unread' | 'assignee'> & {
   incoming: string[]
@@ -30,6 +32,31 @@ export const SIMULATIONS: SimTemplate[] = [
     },
   },
   {
+    name: 'Lautaro Gómez',
+    channel: 'instagram',
+    handle: '@lauti.gomez',
+    classification: 'nuevo',
+    confidence: 0.9,
+    tags: ['Primera vivienda', 'Crédito preaprobado', 'Busca 2 ambientes'],
+    developmentId: 'colegiales',
+    typology: '2 ambientes',
+    hue: 190,
+    campaignId: 'c-col-1v',
+    summary:
+      'Llegó desde la campaña Colegiales 1ª vivienda. El anuncio ya le respondió lo del crédito: pregunta directo por una unidad y quiere visitar.',
+    incoming: [
+      'Hola! Vi el anuncio del 2 ambientes en Colegiales 🙌 Ya tengo el crédito preaprobado en el Nación. ¿Sigue disponible el contrafrente del 3°? ¿Puedo ir a verlo esta semana?',
+    ],
+    history: [{ id: 'sh20', date: 'Ahora', title: 'Primera consulta por Instagram', kind: 'consulta', detail: 'Desde anuncio · Camp. Colegiales 1ª vivienda' }],
+    draft: `¡Hola Lautaro! Qué bueno que ya tengas el crédito preaprobado 🙌 El contrafrente del 3° sigue disponible: es el 2 ambientes más luminoso del edificio, a ${usd(priceFor('colegiales', '2 ambientes'))}. Te propongo que vengas al showroom a verlo y de paso revisamos juntos los plazos de escritura con el banco. ¿Te queda bien el jueves a las 18?`,
+    draftKind: 'respuesta',
+    followUp: {
+      text: '¡Genial! Jueves 18 me viene perfecto, voy con mi pareja 🙂',
+      delay: 4200,
+      meeting: { label: 'Jueves 18:00', detail: 'Showroom MARQ Colegiales' },
+    },
+  },
+  {
     name: 'Jorge Pereyra',
     channel: 'whatsapp',
     phone: '+54 9 11 4731-0056',
@@ -51,6 +78,28 @@ export const SIMULATIONS: SimTemplate[] = [
     draftKind: 'respuesta',
   },
   {
+    name: 'Carla Benedetti',
+    channel: 'whatsapp',
+    phone: '+54 9 11 6390-1184',
+    classification: 'nuevo',
+    confidence: 0.87,
+    tags: ['Inversor', 'Pregunta por cesión', 'Busca monoambiente'],
+    developmentId: 'nunez',
+    typology: 'Monoambiente',
+    hue: 75,
+    campaignId: 'c-nun-inv',
+    summary: 'Llegó desde la campaña Núñez inversores. El anuncio le respondió rentabilidad y cesión; pregunta por el costo de ceder el boleto.',
+    incoming: ['Hola, vi el anuncio de los monoambientes en Núñez. Si compro ahora, ¿qué costo tiene ceder el boleto antes de la entrega?'],
+    history: [{ id: 'sh21', date: 'Ahora', title: 'Primera consulta por WhatsApp', kind: 'consulta', detail: 'Desde anuncio · Camp. Núñez inversores' }],
+    draft: `Hola Carla, ¡gracias por escribirnos! La cesión de boleto tiene un costo del 2% sobre el valor de la unidad y se puede hacer una vez abonado el 50%. Los monoambientes de MARQ Núñez arrancan en ${usd(priceFor('nunez', 'Monoambiente'))}, con entrega en marzo 2027. ¿Te armo una proyección de rentabilidad con y sin cesión y la charlamos por videollamada?`,
+    draftKind: 'respuesta',
+    followUp: {
+      text: 'Dale, me sirve. ¿Mañana a las 12 por Meet?',
+      delay: 4200,
+      meeting: { label: 'Mañana 12:00', detail: 'Videollamada por Meet' },
+    },
+  },
+  {
     name: 'Ariel B.',
     channel: 'portal',
     portal: 'Zonaprop',
@@ -66,6 +115,23 @@ export const SIMULATIONS: SimTemplate[] = [
     history: [{ id: 'sh5', date: 'Ahora', title: 'Consulta desde aviso de Zonaprop', kind: 'consulta', detail: 'MARQ Villa Urquiza' }],
     draft:
       '¡Hola Ariel! Gracias por tu consulta sobre MARQ Villa Urquiza. Para pasarte la info que más te sirva: ¿estás buscando para vivir o para invertir, y cuántos ambientes necesitás? Si querés, te mando ya la ficha completa con precios y planos.',
+    draftKind: 'respuesta',
+  },
+  {
+    name: 'Sol Martínez',
+    channel: 'instagram',
+    handle: '@sol.mtz',
+    classification: 'sin',
+    confidence: 0.31,
+    tags: ['Consulta desde anuncio'],
+    developmentId: 'urquiza',
+    typology: 'Sin definir',
+    hue: 15,
+    campaignId: 'c-urq-amp',
+    summary: 'Llegó desde la campaña amplia de Villa Urquiza con una consulta de una palabra. Todavía no sabemos qué busca.',
+    incoming: ['precio? 👀'],
+    history: [{ id: 'sh22', date: 'Ahora', title: 'Consulta por Instagram', kind: 'consulta', detail: 'Desde anuncio · Camp. Villa Urquiza lanzamiento' }],
+    draft: `¡Hola Sol! Gracias por escribirnos 😊 En MARQ Villa Urquiza los 2 ambientes arrancan en ${usd(priceFor('urquiza', '2 ambientes'))} y los 3 ambientes en ${usd(priceFor('urquiza', '3 ambientes'))}. Para recomendarte la unidad justa: ¿buscás para vivir o para invertir?`,
     draftKind: 'respuesta',
   },
   {

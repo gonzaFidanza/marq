@@ -140,3 +140,14 @@ export const DEVELOPMENTS: Development[] = [
 ]
 
 export const devById = (id: string) => DEVELOPMENTS.find((d) => d.id === id) ?? DEVELOPMENTS[0]
+
+/**
+ * Lista de precios única del asistente. Sale de DEVELOPMENTS: la usan los borradores
+ * de respuesta de la Bandeja, la ficha del contacto y los borradores de campaña.
+ */
+export const PRICE_LIST = DEVELOPMENTS.flatMap((d) => d.typologies.map((t) => ({ developmentId: d.id, typology: t.label, from: t.from })))
+
+export const priceFor = (developmentId: string, typology: string) => {
+  const dev = devById(developmentId)
+  return (dev.typologies.find((t) => t.label === typology) ?? dev.typologies.find((t) => typology.startsWith(t.label.split(' ')[0])) ?? dev.typologies[0]).from
+}

@@ -8,6 +8,7 @@ import { cn } from '../lib/utils'
 const TITLES = {
   inbox: { title: 'Bandeja', sub: 'Todas tus consultas, en un solo lugar' },
   board: { title: 'Tablero de seguimiento', sub: 'Cada contacto, en su etapa' },
+  attraction: { title: 'Atracción', sub: 'Pauta que busca gente que avanza' },
   metrics: { title: 'Métricas', sub: 'Cómo viene el equipo comercial' },
 }
 
@@ -53,12 +54,19 @@ export function Header() {
         </span>
       </div>
 
-      <div className="group relative hidden items-center gap-1.5 rounded-full border border-line bg-surface/70 px-3 py-1.5 text-[11.5px] font-medium text-ink-2 xl:flex">
+      <div
+        className={cn(
+          'group relative hidden items-center gap-1.5 rounded-full border border-line bg-surface/70 px-3 py-1.5 text-[11.5px] font-medium text-ink-2',
+          view !== 'attraction' && 'xl:flex',
+        )}
+      >
         <ShieldCheck size={14} className="text-accent" />
-        Nada se envía sin tu aprobación
+        {view === 'attraction' ? 'Nada se publica ni se gasta sin tu aprobación' : 'Nada se envía sin tu aprobación'}
         <div className="pointer-events-none absolute top-full left-1/2 mt-2 w-64 -translate-x-1/2 rounded-xl border border-line bg-surface p-3 text-[11.5px] leading-relaxed font-normal text-ink-2 opacity-0 shadow-float transition group-hover:opacity-100">
-          El asistente trabaja detrás de escena: registra, clasifica, redacta borradores y te recuerda seguimientos.{' '}
-          <b className="text-ink">Vos decidís qué se envía.</b>
+          {view === 'attraction'
+            ? 'El agente propone campañas a partir de lo que pasa en la Bandeja y el Tablero. '
+            : 'El asistente trabaja detrás de escena: registra, clasifica, redacta borradores y te recuerda seguimientos. '}
+          <b className="text-ink">{view === 'attraction' ? 'Una persona decide qué se publica.' : 'Vos decidís qué se envía.'}</b>
         </div>
       </div>
 

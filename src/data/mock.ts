@@ -1,4 +1,6 @@
 import type { Contact, Message } from '../types'
+import { priceFor } from './config'
+import { usd } from '../lib/utils'
 
 export const NOW = Date.now()
 export const MIN = 60_000
@@ -62,8 +64,7 @@ export const INITIAL_CONTACTS: Contact[] = [
       ),
     ],
     history: [h('Hoy', 'Primera consulta por WhatsApp', 'consulta', 'Pregunta por 2 ambientes y crédito')],
-    draft:
-      '¡Hola Lucía! Gracias por escribirnos 😊 Sí, en MARQ Colegiales se puede combinar el anticipo con un crédito hipotecario al momento de la escritura. Los 2 ambientes arrancan en USD 142.000 y la entrega es en diciembre de 2027. Como es su primera vivienda, les propongo que vengan al showroom a ver el departamento modelo y les armamos una simulación de cuotas a medida. ¿Les queda bien este sábado a la mañana?',
+    draft: `¡Hola Lucía! Gracias por escribirnos 😊 Sí, en MARQ Colegiales se puede combinar el anticipo con un crédito hipotecario al momento de la escritura. Los 2 ambientes arrancan en ${usd(priceFor('colegiales', '2 ambientes'))} y la entrega es en diciembre de 2027. Como es su primera vivienda, les propongo que vengan al showroom a ver el departamento modelo y les armamos una simulación de cuotas a medida. ¿Les queda bien este sábado a la mañana?`,
     draftKind: 'respuesta',
   },
   {

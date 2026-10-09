@@ -12,11 +12,13 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Building2, Hand, AlarmClock } from 'lucide-react'
+import { Building2, Hand, AlarmClock, Megaphone } from 'lucide-react'
 import { isStale, useStore } from '../store'
 import { STAGES, TEAM, devById } from '../data/config'
-import type { Contact, StageId } from '../types'
+import type { Contact, Origin, StageId } from '../types'
 import { Avatar, ChannelIcon, ClassChip, TeamAvatar } from '../components/ui'
+import { OriginChip } from '../components/attraction-ui'
+import { CAMPAIGN_COLOR, ORIGINS, originOf } from '../data/attraction'
 import { cn, daysIn, stageAgeLabel } from '../lib/utils'
 
 export function Board() {
@@ -25,6 +27,7 @@ export function Board() {
   const requestDiscard = useStore((s) => s.requestDiscard)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [assignee, setAssignee] = useState<string>('todos')
+  const origin = useStore((s) => s.boardOrigin)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
@@ -32,10 +35,11 @@ export function Board() {
     const r = Object.fromEntries(STAGES.map((s) => [s.id, [] as Contact[]])) as Record<StageId, Contact[]>
     contacts
       .filter((c) => assignee === 'todos' || c.assignee === assignee)
+      .filter((c) => matchesOrigin(c, origin))
       .forEach((c) => r[c.stage].push(c))
     Object.values(r).forEach((l) => l.sort((a, b) => b.stageSince - a.stageSince))
     return r
-  }, [contacts, assignee])
+  }, [contacts, assignee, origin])
 
   const active = activeId ? contacts.find((c) => c.id === activeId) : null
 
@@ -88,6 +92,8 @@ export function Board() {
         </span>
       </div>
 
+      <OriginFilters />
+
       <DndContext sensors={sensors} onDragStart={onStart} onDragEnd={onEnd} onDragCancel={() => setActiveId(null)}>
         <div className="scroll-soft flex min-h-0 flex-1 gap-3.5 overflow-x-auto px-7 pb-6">
           {STAGES.map((s, i) => (
@@ -106,6 +112,62 @@ export function Board() {
         document.body,
         )}
       </DndContext>
+    </div>
+  )
+}
+
+function matchesOrigin(c: Contact, f: string) {
+  if (f === 'todos') return true
+  if (f === 'pauta') return !!c.campaignId
+  if (f.startsWith('camp:')) return c.campaignId === f.slice(5)
+  return originOf(c) === f
+}
+
+const ORIGIN_KEYS: Origin[] = ['recomendacion', 'organico', 'portal', 'cliente']
+
+function OriginFilters() {
+  const contacts = useStore((s) => s.contacts)
+  const campaigns = useStore((s) => s.campaigns)
+  const origin = useStore((s) => s.boardOrigin)
+  const setOrigin = useStore((s) => s.setBoardOrigin)
+  const withContacts = campaigns.filter((cp) => contacts.some((c) => c.campaignId === cp.id))
+  const pills: { id: string; label: string; campaign?: boolean }[] = [
+    { id: 'todos', label: 'Todos' },
+    { id: 'pauta', label: 'Toda la pauta', campaign: true },
+    ...withContacts.map((cp) => ({ id: 'camp:' + cp.id, label: cp.name, campaign: true })),
+    ...ORIGIN_KEYS.map((o) => ({ id: o, label: ORIGINS[o].label })),
+  ]
+  return (
+    <div className="scroll-soft -mt-1 flex shrink-0 items-center gap-1.5 overflow-x-auto px-7 pb-4">
+      <span className="mr-1 shrink-0 text-[11px] font-semibold tracking-[0.12em] text-ink-3 uppercase">Origen</span>
+      {pills.map((p) => {
+        const active = origin === p.id
+        const n = contacts.filter((c) => matchesOrigin(c, p.id)).length
+        return (
+          <button
+            key={p.id}
+            onClick={() => setOrigin(p.id)}
+            className={cn(
+              'relative flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-medium whitespace-nowrap transition-colors',
+              active ? 'text-white' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId="origin-pill"
+                className={cn('absolute inset-0 rounded-full', !p.campaign && 'bg-accent-strong dark:bg-accent')}
+                style={p.campaign ? { background: CAMPAIGN_COLOR } : undefined}
+                transition={{ type: 'spring', stiffness: 450, damping: 34 }}
+              />
+            )}
+            <span className={cn('relative flex items-center gap-1', active && !p.campaign && 'text-accent-ink')}>
+              {p.campaign && <Megaphone size={11} style={active ? undefined : { color: CAMPAIGN_COLOR }} />}
+              {p.id.startsWith('camp:') ? `Camp. ${p.label}` : p.label}
+              <span className={cn('ml-0.5 text-[10.5px]', active ? 'opacity-75' : 'text-ink-3')}>{n}</span>
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -237,6 +299,7 @@ function CardBody({ c, overlay, ghost }: { c: Contact; overlay?: boolean; ghost?
       </div>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
         <ClassChip value={c.classification} size="xs" analyzing={c.analyzing} />
+        <OriginChip c={c} />
       </div>
       <p className="mt-2.5 flex items-center gap-1.5 text-[11.5px] text-ink-2">
         <Building2 size={12} className="text-ink-3" />

@@ -55,6 +55,7 @@ export function stageAgeLabel(t: number) {
 }
 
 export const usd = (n: number) => `USD ${n.toLocaleString('es-AR')}`
+export const ars = (n: number) => `ARS ${Math.round(n).toLocaleString('es-AR')}`
 
 export const firstName = (n: string) => n.split(' ')[0]
 

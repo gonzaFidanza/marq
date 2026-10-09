@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CalendarCheck, Check, CheckCheck, MoreHorizontal, Moon, Paperclip, Pencil, Phone, SendHorizontal, Smile, X, Eraser } from 'lucide-react'
+import { CalendarCheck, Check, CheckCheck, Megaphone, MoreHorizontal, Moon, Paperclip, Pencil, Phone, SendHorizontal, Smile, X, Eraser } from 'lucide-react'
 import { useStore } from '../store'
 import type { Contact } from '../types'
 import { Avatar, ChannelPill, SparkleIcon, StagePill, TeamAvatar } from '../components/ui'
@@ -13,6 +13,7 @@ export function ChatPane({ c }: { c: Contact }) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [text, setText] = useState('')
   const sendMessage = useStore((s) => s.sendMessage)
+  const campaign = useStore((s) => (c.campaignId ? s.campaigns.find((x) => x.id === c.campaignId) : undefined))
 
   useEffect(() => setText(''), [c.id])
 
@@ -34,12 +35,18 @@ export function ChatPane({ c }: { c: Contact }) {
   return (
     <section className="flex min-w-0 flex-1 flex-col bg-bg">
       {/* Header */}
-      <div className="flex h-[76px] shrink-0 items-center gap-3.5 border-b border-line bg-surface/50 px-6 backdrop-blur-xl">
+      <div id="chat-header" className="flex h-[76px] shrink-0 items-center gap-3.5 border-b border-line bg-surface/50 px-6 backdrop-blur-xl">
         <Avatar name={c.name} hue={c.hue} size={42} channel={c.channel} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="truncate text-[15px] font-semibold text-ink">{c.name}</p>
+            <p className="shrink-0 truncate text-[15px] font-semibold text-ink">{c.name}</p>
             <ChannelPill channel={c.channel} portal={c.portal} />
+            {campaign && (
+              <span className="hidden min-w-0 items-center gap-1 truncate text-[11.5px] text-[#B5704F] lg:flex" title={`Camp. ${campaign.name}`}>
+                <Megaphone size={11} className="shrink-0" />
+                <span className="truncate">Llegó desde un anuncio · Camp. {campaign.name}</span>
+              </span>
+            )}
           </div>
           <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-3">
             {c.contactTyping ? (
@@ -52,7 +59,7 @@ export function ChatPane({ c }: { c: Contact }) {
             )}
           </p>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <StagePill stage={c.stage} onClick={() => showOnBoard(c.id)} />
           <button className="flex h-9 w-9 items-center justify-center rounded-xl text-ink-3 transition hover:bg-surface-2 hover:text-ink">
             <Phone size={17} />
