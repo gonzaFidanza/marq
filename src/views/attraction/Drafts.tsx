@@ -59,8 +59,8 @@ export function Drafts() {
   return (
     <div className="flex h-full min-h-0 border-t border-line">
       <DraftList />
-      {generating ? <GeneratingStage step={generating.step} /> : <DraftPreview key={d.id} d={d} edit={edit} setEdit={setEdit} />}
-      <DraftSheet key={d.id} d={d} edit={edit} setEdit={setEdit} dim={!!generating} />
+      {generating ? <GeneratingStage step={generating.step} /> : <DraftPreview key={"preview-" + d.id} d={d} edit={edit} setEdit={setEdit} />}
+      <DraftSheet key={"sheet-" + d.id} d={d} edit={edit} setEdit={setEdit} dim={!!generating} />
     </div>
   )
 }
