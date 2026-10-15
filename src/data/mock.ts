@@ -1,6 +1,5 @@
 import type { Contact, Message } from '../types'
-import { priceFor } from './config'
-import { usd } from '../lib/utils'
+import { priceToken } from './pricing'
 
 export const NOW = Date.now()
 export const MIN = 60_000
@@ -64,7 +63,7 @@ export const INITIAL_CONTACTS: Contact[] = [
       ),
     ],
     history: [h('Hoy', 'Primera consulta por WhatsApp', 'consulta', 'Pregunta por 2 ambientes y crédito')],
-    draft: `¡Hola Lucía! Gracias por escribirnos 😊 Sí, en MARQ Colegiales se puede combinar el anticipo con un crédito hipotecario al momento de la escritura. Los 2 ambientes arrancan en ${usd(priceFor('colegiales', '2 ambientes'))} y la entrega es en diciembre de 2027. Como es su primera vivienda, les propongo que vengan al showroom a ver el departamento modelo y les armamos una simulación de cuotas a medida. ¿Les queda bien este sábado a la mañana?`,
+    draft: `¡Hola Lucía! Gracias por escribirnos 😊 Sí, en MARQ Colegiales se puede combinar el anticipo con un crédito hipotecario al momento de la escritura. Los 2 ambientes arrancan en ${priceToken('colegiales', '2 ambientes')} y la entrega es en diciembre de 2027. Como es su primera vivienda, les propongo que vengan al showroom a ver el departamento modelo y les armamos una simulación de cuotas a medida. ¿Les queda bien este sábado a la mañana?`,
     draftKind: 'respuesta',
   },
   {
@@ -79,7 +78,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     developmentId: 'urquiza',
     typology: 'Sin definir',
     stage: 'pendiente',
-    stageSince: satNight,
+    stageSince: NOW - satNight,
     assignee: 'candelaria',
     unread: 1,
     hue: 210,
@@ -119,7 +118,7 @@ export const INITIAL_CONTACTS: Contact[] = [
       h('08 mar', 'Primera consulta por Instagram', 'consulta', '3 ambientes · MARQ Villa Urquiza'),
     ],
     draft:
-      'Hola Martina, ¡qué bueno volver a saber de vos! Me acuerdo que en marzo vinieron al showroom a ver los 3 ambientes de Villa Urquiza. Te cuento: todavía quedan dos unidades con balcón al frente (pisos 4 y 6), desde USD 189.000, con el mismo esquema de cuotas en pesos durante la obra. ¿Querés que te mande los planos actualizados y coordinamos una llamada esta semana?',
+      `Hola Martina, ¡qué bueno volver a saber de vos! Me acuerdo que en marzo vinieron al showroom a ver los 3 ambientes de Villa Urquiza. Te cuento: todavía quedan dos unidades con balcón al frente (pisos 4 y 6), desde ${priceToken('urquiza', '3 ambientes')}, con el mismo esquema de cuotas en pesos durante la obra. ¿Querés que te mande los planos actualizados y coordinamos una llamada esta semana?`,
     draftKind: 'respuesta',
   },
 
@@ -156,7 +155,7 @@ export const INITIAL_CONTACTS: Contact[] = [
       h('Hace 7 días', 'Primera consulta por WhatsApp', 'consulta'),
     ],
     draft:
-      'Hola Martín, ¿cómo estás? Te escribo porque se liberó una unidad de 2 ambientes en MARQ Núñez, piso 5 con balcón, que para renta temporaria rinde muy bien (estimamos USD 1.100/mes). Está en USD 158.000 y la entrega es en marzo 2027. ¿Querés que te la reserve 48 hs mientras la mirás?',
+      `Hola Martín, ¿cómo estás? Te escribo porque se liberó una unidad de 2 ambientes en MARQ Núñez, piso 5 con balcón, que para renta temporaria rinde muy bien (estimamos USD 1.100/mes). Está en ${priceToken('nunez', '2 ambientes')} y la entrega es en marzo 2027. ¿Querés que te la reserve 48 hs mientras la mirás?`,
     draftKind: 'retomar',
   },
   {

@@ -1,10 +1,12 @@
-import { Inbox, SquareKanban, ChartColumn, Megaphone, Moon, Sun } from 'lucide-react'
+import { Inbox, LayoutDashboard, SquareKanban, ChartColumn, Megaphone, Moon, Sun } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useStore, type View } from '../store'
 import { cn } from '../lib/utils'
 import { Logo, TeamAvatar } from './ui'
 
+/** En el mismo orden que los atajos 1 a 5 */
 const NAV: { id: View; label: string; icon: typeof Inbox }[] = [
+  { id: 'hoy', label: 'Hoy', icon: LayoutDashboard },
   { id: 'inbox', label: 'Bandeja', icon: Inbox },
   { id: 'board', label: 'Tablero', icon: SquareKanban },
   { id: 'attraction', label: 'Atracción', icon: Megaphone },

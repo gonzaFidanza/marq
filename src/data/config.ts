@@ -144,10 +144,24 @@ export const devById = (id: string) => DEVELOPMENTS.find((d) => d.id === id) ?? 
 /**
  * Lista de precios única del asistente. Sale de DEVELOPMENTS: la usan los borradores
  * de respuesta de la Bandeja, la ficha del contacto y los borradores de campaña.
+ * Los valores vigentes viven en el store (`prices`); estos son los iniciales.
  */
 export const PRICE_LIST = DEVELOPMENTS.flatMap((d) => d.typologies.map((t) => ({ developmentId: d.id, typology: t.label, from: t.from })))
 
-export const priceFor = (developmentId: string, typology: string) => {
+export type PriceList = Record<string, number>
+
+export const priceKey = (developmentId: string, typology: string) => `${developmentId}/${typology}`
+
+export const INITIAL_PRICES: PriceList = Object.fromEntries(PRICE_LIST.map((p) => [priceKey(p.developmentId, p.typology), p.from]))
+
+/** Tipología de la lista que corresponde a lo que busca un contacto ("Monoambiente ×2" → "Monoambiente") */
+export const listTypology = (developmentId: string, typology: string) => {
   const dev = devById(developmentId)
-  return (dev.typologies.find((t) => t.label === typology) ?? dev.typologies.find((t) => typology.startsWith(t.label.split(' ')[0])) ?? dev.typologies[0]).from
+  return (dev.typologies.find((t) => t.label === typology) ?? dev.typologies.find((t) => typology.startsWith(t.label.split(' ')[0])) ?? dev.typologies[0]).label
 }
+
+/** Clave en la lista de precios para lo que busca un contacto o anuncia una campaña */
+export const listPriceKey = (developmentId: string, typology: string) => priceKey(developmentId, listTypology(developmentId, typology))
+
+export const priceFor = (developmentId: string, typology: string, prices: PriceList = INITIAL_PRICES) =>
+  prices[listPriceKey(developmentId, typology)]

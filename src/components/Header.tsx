@@ -1,4 +1,4 @@
-import { Bell, Search, ShieldCheck, Volume2, VolumeX } from 'lucide-react'
+import { Bell, Search, ShieldCheck, Tag, Volume2, VolumeX } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { isStale, useStore } from '../store'
 import { Kbd } from './ui'
@@ -6,6 +6,7 @@ import { RemindersPanel } from './RemindersPanel'
 import { cn } from '../lib/utils'
 
 const TITLES = {
+  hoy: { title: 'Hoy en MARQ', sub: 'Lo que necesita tu atención hoy' },
   inbox: { title: 'Bandeja', sub: 'Todas tus consultas, en un solo lugar' },
   board: { title: 'Tablero de seguimiento', sub: 'Cada contacto, en su etapa' },
   attraction: { title: 'Atracción', sub: 'Pauta que busca gente que avanza' },
@@ -22,6 +23,8 @@ export function Header() {
   const open = useStore((s) => s.remindersOpen)
   const setOpen = useStore((s) => s.setRemindersOpen)
   const staleCount = useStore((s) => s.contacts.filter((c) => isStale(c)).length)
+  const pricesOpen = useStore((s) => s.pricesOpen)
+  const openPrices = useStore((s) => s.openPrices)
   const t = TITLES[view]
 
   return (
@@ -77,6 +80,17 @@ export function Header() {
           className="flex h-10 w-10 items-center justify-center rounded-xl text-ink-3 transition hover:bg-surface-2 hover:text-ink"
         >
           {sound ? <Volume2 size={18} /> : <VolumeX size={18} />}
+        </button>
+
+        <button
+          onClick={() => openPrices()}
+          title="Lista de precios"
+          className={cn(
+            'flex h-10 w-10 items-center justify-center rounded-xl transition',
+            pricesOpen ? 'bg-surface-2 text-ink' : 'text-ink-3 hover:bg-surface-2 hover:text-ink',
+          )}
+        >
+          <Tag size={18} />
         </button>
 
         <div className="relative">

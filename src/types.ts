@@ -153,6 +153,32 @@ export interface Development {
   typologies: { label: string; from: number }[]
 }
 
+/** Un cambio confirmado en la lista de precios */
+export interface PriceChange {
+  id: string
+  key: string
+  developmentId: string
+  typology: string
+  from: number
+  to: number
+  at: number
+}
+
+/** Un contacto que el radar retomó a partir de un cambio de precio */
+export interface RadarRetake {
+  id: string
+  contactId: string
+  changeId: string
+  at: number
+}
+
+/** Cambio de precio en revisión, antes de confirmarlo */
+export interface PendingPrice {
+  developmentId: string
+  typology: string
+  to: number
+}
+
 export interface Toast {
   id: string
   title: string

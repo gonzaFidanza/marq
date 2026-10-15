@@ -1,12 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, MessageSquareQuote } from 'lucide-react'
-import { useStore } from '../../store'
+import { AlertTriangle, ArrowRight, MessageSquareQuote, ShieldCheck, Tag, TrendingDown } from 'lucide-react'
+import { isStale, useStore } from '../../store'
+import type { Contact } from '../../types'
 import { DEV_SIGNALS, PROFILES, PROFILE_SIGNALS, QUESTION_SIGNALS } from '../../data/attraction'
-import { devById } from '../../data/config'
-import { SparkleIcon } from '../../components/ui'
+import { devById, stageById } from '../../data/config'
+import { OPPORTUNITY_DROP, RADAR_KINDS, radarOpportunities, type RadarKind } from '../../data/pricing'
+import { Avatar, Kbd, SparkleIcon } from '../../components/ui'
 import { AnimatedNumber, DevImage, ProfileChip } from '../../components/attraction-ui'
-import { cn } from '../../lib/utils'
+import { cn, usd } from '../../lib/utils'
 
 const card = 'rounded-[24px] border border-line bg-surface p-5 shadow-soft'
 const fade = (i: number) => ({
@@ -198,8 +200,187 @@ export function Signals() {
             )
           })}
         </div>
+
+        {/* Radar de oportunidades */}
+        <motion.div {...fade(9)} id="sig-radar" className="mt-7 mb-3 flex items-end justify-between">
+          <Title title="Radar de oportunidades" sub="Contactos que vuelven a estar en juego si baja el precio de lo que consultaron" />
+          <span className="flex items-center gap-1.5 text-[11.5px] text-ink-3">
+            <Tag size={13} /> Medido con una baja de {Math.abs(OPPORTUNITY_DROP * 100)}% sobre la lista de precios vigente
+          </span>
+        </motion.div>
+        <div className="grid grid-cols-12 gap-4">
+          <RadarOpportunities />
+          <RadarRetakes />
+        </div>
       </div>
     </div>
+  )
+}
+
+function RadarOpportunities() {
+  const contacts = useStore((s) => s.contacts)
+  const prices = useStore((s) => s.prices)
+  const radarLog = useStore((s) => s.radarLog)
+  const preview = useStore((s) => s.previewPrice)
+  const rows = useMemo(
+    () => radarOpportunities(contacts, prices, isStale, new Set(radarLog.map((r) => r.contactId))),
+    [contacts, prices, radarLog],
+  )
+  const total = rows.reduce((a, r) => a + r.items.length, 0)
+
+  return (
+    <motion.div {...fade(10)} className={cn(card, 'col-span-12 flex flex-col xl:col-span-7')}>
+      <div className="flex items-center justify-between gap-4">
+        <p className="flex items-center gap-1.5 text-[12.5px] font-semibold">
+          <SparkleIcon size={14} /> <span className="ai-text">Oportunidades por tipología</span>
+        </p>
+        <span className="text-[11.5px] text-ink-3">
+          {total} {total === 1 ? 'contacto' : 'contactos'} en {rows.length} {rows.length === 1 ? 'tipología' : 'tipologías'}
+        </span>
+      </div>
+      {rows.length ? (
+        <div className="mt-3 space-y-1">
+          {rows.map((o) => {
+            const dev = devById(o.developmentId)
+            const kinds = Object.entries(
+              o.items.reduce<Record<string, number>>((a, r) => ({ ...a, [r.kind]: (a[r.kind] ?? 0) + 1 }), {}),
+            ) as [RadarKind, number][]
+            return (
+              <div key={o.developmentId + o.typology} className="flex items-center gap-3.5 rounded-2xl px-2 py-2 transition hover:bg-surface-2/60">
+                <DevImage id={o.developmentId} className="h-11 w-11 shrink-0 rounded-xl" />
+                <div className="w-[176px] shrink-0">
+                  <p className="truncate text-[13px] font-semibold text-ink">{dev.neighborhood}</p>
+                  <p className="text-[11.5px] whitespace-nowrap text-ink-3">
+                    {o.typology} · {usd(o.from)}
+                  </p>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center">
+                    {o.items.slice(0, 4).map((r, k) => (
+                      <Avatar key={r.contact.id} name={r.contact.name} hue={r.contact.hue} size={24} ring className={k ? '-ml-1.5' : ''} />
+                    ))}
+                    <span className="ml-2 text-[12px] font-medium text-ink">
+                      {o.items.length} {o.items.length === 1 ? 'contacto' : 'contactos'}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {kinds.map(([k, n]) => (
+                      <span
+                        key={k}
+                        className={cn(
+                          'rounded-full px-1.5 py-px text-[10.5px] font-medium whitespace-nowrap',
+                          k === 'presupuesto' ? 'bg-accent-soft text-accent' : 'bg-surface-2 text-ink-2',
+                        )}
+                      >
+                        {RADAR_KINDS[k]}
+                        {n > 1 && ` · ${n}`}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() => preview({ developmentId: o.developmentId, typology: o.typology, to: o.to })}
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-[12px] font-medium text-ink shadow-soft transition hover:border-line-strong hover:bg-surface-2"
+                >
+                  <TrendingDown size={13} className="text-accent" /> Simular baja
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="mt-4 rounded-2xl border border-dashed border-line p-4 text-center text-[12px] text-ink-3">
+          No hay contactos en juego por ahora.
+        </p>
+      )}
+      <div className="mt-auto pt-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface-2/60 p-3.5 pl-4 text-[12.5px] leading-snug text-ink-2">
+          <ShieldCheck size={16} className="shrink-0 text-accent" />
+          <p>
+            El radar no envía nada: al simular una baja ves el impacto y <b className="font-semibold text-ink">elegís a quién retomar</b>.
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+/** En qué quedó cada contacto que retomó el radar */
+function retakeStatus(c: Contact, at: number): { step: number; label: string; color?: string; className?: string } {
+  if (['reunion', 'realizada', 'propuesta', 'reserva'].includes(c.stage) && c.stageSince > at) {
+    const s = stageById(c.stage)
+    return { step: 3, label: s.short, color: s.color }
+  }
+  if (c.messages.some((m) => m.from === 'contact' && m.at > at)) return { step: 2, label: 'Respondió', className: 'bg-accent-soft text-accent' }
+  if (c.messages.some((m) => m.from === 'agent' && m.at > at)) return { step: 1, label: 'Mensaje enviado', className: 'bg-surface-3 text-ink-2' }
+  if (c.draft) return { step: 0, label: 'Borrador para aprobar', color: stageById('pendiente').color }
+  return { step: 0, label: 'Sin enviar', className: 'bg-surface-3 text-ink-3' }
+}
+
+function RadarRetakes() {
+  const log = useStore((s) => s.radarLog)
+  const contacts = useStore((s) => s.contacts)
+  const history = useStore((s) => s.priceHistory)
+  const select = useStore((s) => s.select)
+  const rows = log.flatMap((r) => {
+    const c = contacts.find((x) => x.id === r.contactId)
+    const ch = history.find((h) => h.id === r.changeId)
+    return c && ch ? [{ r, c, ch, st: retakeStatus(c, r.at) }] : []
+  })
+  const replied = rows.filter((x) => x.st.step >= 2).length
+  const meetings = rows.filter((x) => x.st.step >= 3).length
+
+  return (
+    <motion.div {...fade(11)} className={cn(card, 'col-span-12 flex flex-col xl:col-span-5')}>
+      <Title title="Retomados por el radar" sub="Qué pasó con cada contacto después del cambio de precio" />
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
+        {[
+          { label: 'Retomados', value: rows.length },
+          { label: 'Respondieron', value: replied },
+          { label: 'Reuniones', value: meetings },
+        ].map((k) => (
+          <div key={k.label} className="rounded-2xl bg-surface-2/60 p-3">
+            <p className="text-[11px] text-ink-3">{k.label}</p>
+            <p className="mt-1.5 font-serif text-[24px] leading-none text-ink">
+              <AnimatedNumber value={k.value} />
+            </p>
+          </div>
+        ))}
+      </div>
+      {rows.length ? (
+        <div className="mt-4 space-y-1.5">
+          {rows.map(({ r, c, ch, st }) => (
+            <button
+              key={r.id}
+              onClick={() => select(c.id)}
+              className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-2.5 text-left shadow-soft transition hover:border-line-strong hover:shadow-card"
+            >
+              <Avatar name={c.name} hue={c.hue} size={34} channel={c.channel} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold text-ink">{c.name}</p>
+                <p className="truncate text-[11px] text-ink-3">
+                  {devById(ch.developmentId).neighborhood} · {ch.typology} · {usd(ch.from)} → {usd(ch.to)}
+                </p>
+              </div>
+              <span
+                className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap', st.className)}
+                style={st.color ? { background: st.color + '1c', color: st.color } : undefined}
+              >
+                {st.label}
+              </span>
+              <ArrowRight size={14} className="shrink-0 text-ink-3 transition group-hover:translate-x-0.5 group-hover:text-ink" />
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-line p-6 text-center">
+          <p className="text-[12.5px] text-ink-2">Todavía no retomaste a nadie con el radar.</p>
+          <p className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-ink-3">
+            Simulá una baja con <Kbd className="border-line! bg-surface-2! text-ink-2">P</Kbd> o desde una tipología.
+          </p>
+        </div>
+      )}
+    </motion.div>
   )
 }
 

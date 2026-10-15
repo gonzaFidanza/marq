@@ -1,11 +1,12 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CalendarCheck, Check, CheckCheck, Megaphone, MoreHorizontal, Moon, Paperclip, Pencil, Phone, SendHorizontal, Smile, X, Eraser } from 'lucide-react'
-import { useStore } from '../store'
+import { useFillPrices, useStore } from '../store'
 import type { Contact } from '../types'
 import { Avatar, ChannelPill, SparkleIcon, StagePill, TeamAvatar } from '../components/ui'
 import { CLASSIFICATIONS, TEAM, devById } from '../data/config'
-import { cn, dayLabel, firstName, hhmm, isOutOfHours } from '../lib/utils'
+import { mentionsPrice } from '../data/pricing'
+import { cn, dayLabel, firstName, hhmm, isOutOfHours, usd } from '../lib/utils'
 
 export function ChatPane({ c }: { c: Contact }) {
   const showOnBoard = useStore((s) => s.showOnBoard)
@@ -252,7 +253,9 @@ function MeetingBanner({ c }: { c: Contact }) {
 }
 
 function DraftPanel({ c, onDiscard }: { c: Contact; onDiscard: () => void }) {
-  const draft = c.draft ?? ''
+  const fill = useFillPrices()
+  const draft = fill(c.draft ?? '')
+  const priceChange = useStore((s) => s.priceHistory.find((p) => mentionsPrice(c.draft, p.key)))
   const typedAlready = useStore((s) => !!s.typedDrafts[c.id + draft.length])
   const markTyped = useStore((s) => s.markTyped)
   const sendMessage = useStore((s) => s.sendMessage)
@@ -334,7 +337,7 @@ function DraftPanel({ c, onDiscard }: { c: Contact; onDiscard: () => void }) {
             className="w-full resize-none rounded-xl border border-line bg-surface-2/60 p-3 text-[13.5px] leading-relaxed text-ink outline-none focus:border-accent/40 focus:ring-4 focus:ring-accent/10"
           />
         ) : (
-          <p className={cn('text-[13.5px] leading-relaxed text-ink', phase === 'typing' && 'caret')}>{draft.slice(0, n)}</p>
+          <p className={cn('text-[13.5px] leading-relaxed text-ink', phase === 'typing' && 'caret')}>{phase === 'done' ? draft : draft.slice(0, n)}</p>
         )}
       </div>
 
@@ -347,6 +350,11 @@ function DraftPanel({ c, onDiscard }: { c: Contact; onDiscard: () => void }) {
                 {b}
               </span>
             ))}
+            {priceChange && (
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10.5px] font-medium text-accent">
+                Precio actualizado · antes {usd(priceChange.from)}
+              </span>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

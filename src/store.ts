@@ -1,12 +1,16 @@
+import { useCallback } from 'react'
 import { create } from 'zustand'
-import type { Campaign, CampaignDraft, Channel, Classification, Contact, ConversionEvent, StageId, Toast } from './types'
+import type { Campaign, CampaignDraft, Channel, Classification, Contact, ConversionEvent, PendingPrice, PriceChange, RadarRetake, StageId, Toast } from './types'
 import { INITIAL_CONTACTS } from './data/mock'
 import { ATTRIBUTION, GEN_CYCLE, INITIAL_CAMPAIGNS, INITIAL_DRAFTS, adText, buildDraft, campaignNameFor, resegment } from './data/attraction'
 import { SIMULATIONS } from './data/simulations'
-import { CHANNELS, CLASSIFICATIONS, stageById } from './data/config'
-import { celebrate, chime, firstName } from './lib/utils'
+import { CHANNELS, CLASSIFICATIONS, INITIAL_PRICES, devById, listPriceKey, priceKey, stageById, type PriceList } from './data/config'
+import { LISTING_PORTALS, PRICE_DEMOS, affectedBy, fillPrices, radarDraft, radarReply, roundPrice, tokenizePrices } from './data/pricing'
+import { celebrate, chime, firstName, usd } from './lib/utils'
 
-export type View = 'inbox' | 'board' | 'attraction' | 'metrics'
+export type View = 'hoy' | 'inbox' | 'board' | 'attraction' | 'metrics'
+/** Contador elegido en Hoy en MARQ */
+export type TodayTab = 'responder' | 'seguimiento' | 'confirmar'
 export type AttractionTab = 'senales' | 'borradores' | 'campanas'
 /** Filtro del tablero por origen: 'todos', 'pauta', un origen o 'camp:<id>' */
 export type OriginFilter = string
@@ -15,6 +19,7 @@ export type Filter = 'todas' | Channel | 'sin_responder'
 interface State {
   loggedIn: boolean
   view: View
+  todayTab: TodayTab | null
   dark: boolean
   sound: boolean
   contacts: Contact[]
@@ -45,6 +50,15 @@ interface State {
   pendingDraftDiscard: string | null
   draftStats: { approved: number; edited: number; discarded: number; reasons: Record<string, number> }
   boardOrigin: OriginFilter
+
+  // ── Lista de precios
+  prices: PriceList
+  priceHistory: PriceChange[]
+  pricesOpen: boolean
+  priceFocus: string | null
+  pendingPrice: PendingPrice | null
+  priceDemoIndex: number
+  radarLog: RadarRetake[]
 
   login: () => void
   setView: (v: View) => void
@@ -84,6 +98,13 @@ interface State {
   reportConversion: (id: string, stage: StageId, from: StageId) => void
   removeBeam: (id: string) => void
   setBoardOrigin: (o: OriginFilter) => void
+
+  openPrices: (focus?: string | null) => void
+  closePrices: () => void
+  previewPrice: (p: PendingPrice) => void
+  cancelPrice: () => void
+  confirmPrice: (radarIds: string[]) => void
+  simulatePriceChange: () => void
 }
 
 let tid = 0
@@ -105,7 +126,8 @@ export const useStore = create<State>((set, get) => {
 
   return {
     loggedIn: false,
-    view: 'inbox',
+    view: 'hoy',
+    todayTab: null,
     dark: initialDark,
     sound: true,
     contacts: INITIAL_CONTACTS.map((c) => ({ ...c, ...ATTRIBUTION[c.id] })),
@@ -135,6 +157,14 @@ export const useStore = create<State>((set, get) => {
     pendingDraftDiscard: null,
     draftStats: { approved: 0, edited: 0, discarded: 0, reasons: {} },
     boardOrigin: 'todos',
+
+    prices: INITIAL_PRICES,
+    priceHistory: [],
+    pricesOpen: false,
+    priceFocus: null,
+    pendingPrice: null,
+    priceDemoIndex: 0,
+    radarLog: [],
 
     login: () => set({ loggedIn: true }),
     setView: (view) => set({ view, drawerId: null, campaignDrawerId: null, ...(view === 'attraction' ? { metaUnseen: 0 } : {}) }),
@@ -181,7 +211,8 @@ export const useStore = create<State>((set, get) => {
             : { ...s.stats, sentUnchanged: s.stats.sentUnchanged + 1 },
         }))
       }
-      if (c.stage === 'pendiente') {
+      if (c.stage === 'pendiente' || (c.stage === 'descartada' && c.draftKind === 'retomar' && opts.viaDraft)) {
+        // Una consulta respondida, o un contacto descartado que se retoma (por ejemplo, desde el radar de precios)
         setTimeout(() => get().moveStage(id, 'respondida'), 650)
       } else if (c.draftKind === 'retomar' && opts.viaDraft) {
         patch(id, () => ({ stageSince: Date.now() }))
@@ -391,7 +422,14 @@ export const useStore = create<State>((set, get) => {
       set((s) => ({
         drafts: s.drafts.map((d) =>
           d.id === id
-            ? { ...d, segments: resegment(v.text.trim(), d.segments), budget: v.budget, days: v.days, status: 'editado', edited: true }
+            ? {
+                ...d,
+                segments: resegment(tokenizePrices(v.text.trim(), s.prices, d.developmentId), d.segments),
+                budget: v.budget,
+                days: v.days,
+                status: 'editado',
+                edited: true,
+              }
             : d,
         ),
       }))
@@ -427,19 +465,27 @@ export const useStore = create<State>((set, get) => {
       const camp = get().campaigns.find((x) => x.id === c?.campaignId)
       if (!c || !camp) return
       const event: ConversionEvent = stage === 'reunion' ? 'Reunión programada' : stage === 'realizada' ? 'Reunión realizada' : 'Reserva'
-      const before = ['pendiente', 'respondida', 'conversacion', 'descartada'].includes(from)
+      // Cada contacto suma una sola vez por evento: ir y volver entre etapas no vuelve a contar
+      const sent = new Set(camp.conversions.filter((x) => x.contactId === id).map((x) => x.event))
+      const pastMeeting = ['reunion', 'realizada', 'propuesta', 'reserva'].includes(from)
+      const pastDone = ['propuesta', 'reserva'].includes(from)
+      const addScheduled =
+        (stage === 'reunion' || stage === 'realizada') && !pastMeeting && !sent.has('Reunión programada') && !sent.has('Reunión realizada')
+      const addDone = stage === 'realizada' && !pastDone && !sent.has('Reunión realizada')
+      const addReservation = stage === 'reserva' && !sent.has('Reserva')
+      if (!addScheduled && !addDone && !addReservation) return
       set((s) => ({
         campaigns: s.campaigns.map((x) =>
           x.id !== camp.id
             ? x
             : {
                 ...x,
-                ...(stage === 'reunion' || (stage === 'realizada' && before)
+                ...(addScheduled
                   ? { prevCpm: x.meetingsScheduled ? x.spent / x.meetingsScheduled : undefined, droppedAt: Date.now() }
                   : {}),
-                meetingsScheduled: x.meetingsScheduled + (stage === 'reunion' || (stage === 'realizada' && before) ? 1 : 0),
-                meetingsDone: x.meetingsDone + (stage === 'realizada' ? 1 : 0),
-                reservations: x.reservations + (stage === 'reserva' ? 1 : 0),
+                meetingsScheduled: x.meetingsScheduled + (addScheduled ? 1 : 0),
+                meetingsDone: x.meetingsDone + (addDone ? 1 : 0),
+                reservations: x.reservations + (addReservation ? 1 : 0),
                 conversions: [{ id: uid('cv'), contactId: id, name: c.name, event, at: Date.now() }, ...x.conversions],
               },
         ),
@@ -459,11 +505,105 @@ export const useStore = create<State>((set, get) => {
     },
     removeBeam: (id) => set((s) => ({ beams: s.beams.filter((b) => b.id !== id) })),
     setBoardOrigin: (boardOrigin) => set({ boardOrigin }),
+
+    /* ───────── Lista de precios */
+    openPrices: (focus = null) => set({ pricesOpen: true, priceFocus: focus, drawerId: null, campaignDrawerId: null, remindersOpen: false }),
+    closePrices: () => set({ pricesOpen: false, priceFocus: null }),
+    previewPrice: (pendingPrice) => set({ pendingPrice }),
+    cancelPrice: () => set({ pendingPrice: null }),
+
+    confirmPrice: (radarIds) => {
+      const p = get().pendingPrice
+      if (!p) return
+      const key = priceKey(p.developmentId, p.typology)
+      const from = get().prices[key]
+      set({ pendingPrice: null })
+      if (!p.to || p.to === from) return
+      const change: PriceChange = { id: uid('pc'), key, developmentId: p.developmentId, typology: p.typology, from, to: p.to, at: Date.now() }
+      const hit = affectedBy(key, get())
+      // Los borradores y anuncios guardan una marca de precio: al cambiar la lista, se actualizan solos
+      set((s) => ({
+        prices: { ...s.prices, [key]: p.to },
+        priceHistory: [change, ...s.priceHistory],
+        priceFocus: key,
+        radarLog: [...radarIds.map((contactId) => ({ id: uid('rr'), contactId, changeId: change.id, at: change.at })), ...s.radarLog],
+      }))
+
+      radarIds.forEach((id) =>
+        patch(id, (c) => {
+          const reply = radarReply(c, change)
+          return {
+            draft: radarDraft(c, change),
+            draftKind: 'retomar',
+            fresh: true,
+            ...(reply ? { followUp: reply } : {}),
+            history: [
+              { id: uid('h'), date: 'Ahora', title: `Bajó el precio · ${p.typology}`, kind: 'sistema', detail: `${usd(from)} → ${usd(p.to)} · sugerido por el radar` },
+              ...c.history,
+            ],
+          }
+        }),
+      )
+      if (radarIds.length)
+        setTimeout(() => set((s) => ({ contacts: s.contacts.map((c) => (radarIds.includes(c.id) ? { ...c, fresh: false } : c)) })), 6500)
+
+      const updated = hit.replies.length + hit.campaignDrafts.length
+      get().toast({
+        title: `Nuevo precio · ${devById(p.developmentId).name}, ${p.typology}`,
+        body: `${usd(from)} → ${usd(p.to)}. ${updated ? `Actualizamos ${updated} ${updated === 1 ? 'borrador pendiente' : 'borradores pendientes'}.` : 'La lista de precios ya está al día.'}`,
+        tone: 'success',
+      })
+      const ads = hit.ads.length ? [`${hit.ads.length} ${hit.ads.length === 1 ? 'anuncio' : 'anuncios'} en Meta`] : []
+      setTimeout(() => get().toast({ title: '↗ Avisos actualizados', body: [...ads, `avisos en ${LISTING_PORTALS.join(' y ')}`].join(' · '), tone: 'meta' }, 6000), 450)
+      if (radarIds.length)
+        setTimeout(
+          () =>
+            get().toast(
+              {
+                title: radarIds.length === 1 ? '1 borrador para retomar' : `${radarIds.length} borradores para retomar`,
+                body: 'Los preparó el radar y ya están en la Bandeja. Nada se envía sin tu aprobación.',
+                action: { label: 'Revisar', contactId: radarIds[0] },
+              },
+              7000,
+            ),
+          900,
+        )
+    },
+
+    simulatePriceChange: () => {
+      if (get().pendingPrice) return
+      const i = get().priceDemoIndex
+      const demo = PRICE_DEMOS[i % PRICE_DEMOS.length]
+      const from = get().prices[priceKey(demo.developmentId, demo.typology)]
+      set({
+        priceDemoIndex: i + 1,
+        drawerId: null,
+        campaignDrawerId: null,
+        remindersOpen: false,
+        pendingPrice: { developmentId: demo.developmentId, typology: demo.typology, to: roundPrice(from * (1 + demo.pct)) },
+      })
+    },
   }
 })
+
+/** Completa las marcas de precio de un texto con la lista vigente */
+export function useFillPrices() {
+  const prices = useStore((s) => s.prices)
+  return useCallback((text: string) => fillPrices(text, prices), [prices])
+}
+
+/** Precio vigente de una tipología */
+export const usePrice = (developmentId: string, typology: string) => useStore((s) => s.prices[listPriceKey(developmentId, typology)])
+
+/** Último cambio confirmado de una tipología, si lo hubo */
+export const useLastPriceChange = (developmentId: string, typology: string) =>
+  useStore((s) => s.priceHistory.find((p) => p.key === listPriceKey(developmentId, typology)))
 
 /** Contacts that need a nudge */
 export const staleThreshold = (stage: StageId) =>
   stage === 'pendiente' ? 1 : ['respondida', 'conversacion', 'realizada', 'propuesta'].includes(stage) ? 5 : Infinity
 
 export const isStale = (c: Contact) => (Date.now() - c.stageSince) / 86_400_000 >= staleThreshold(c.stage)
+
+/** El último mensaje es del contacto: la consulta espera respuesta */
+export const needsReply = (c: Contact) => c.messages[c.messages.length - 1]?.from === 'contact' && c.stage !== 'descartada'

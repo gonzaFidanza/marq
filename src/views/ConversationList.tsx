@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Inbox as InboxIcon } from 'lucide-react'
-import { useStore, type Filter } from '../store'
+import { needsReply, useStore, type Filter } from '../store'
 import { Avatar, ClassChip } from '../components/ui'
 import { cn, relTime } from '../lib/utils'
 import type { Contact } from '../types'
@@ -16,7 +16,6 @@ const FILTERS: { id: Filter; label: string }[] = [
 ]
 
 const lastAt = (c: Contact) => c.messages[c.messages.length - 1]?.at ?? 0
-const needsReply = (c: Contact) => c.messages[c.messages.length - 1]?.from === 'contact' && c.stage !== 'descartada'
 
 export function ConversationList() {
   const contacts = useStore((s) => s.contacts)
