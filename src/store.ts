@@ -10,7 +10,7 @@ import { celebrate, chime, firstName, usd } from './lib/utils'
 
 export type View = 'hoy' | 'inbox' | 'board' | 'attraction' | 'metrics'
 /** Contador elegido en Hoy en MARQ */
-export type TodayTab = 'responder' | 'seguimiento' | 'confirmar'
+export type TodayTab = 'responder' | 'seguimiento'
 export type AttractionTab = 'senales' | 'borradores' | 'campanas'
 /** Filtro del tablero por origen: 'todos', 'pauta', un origen o 'camp:<id>' */
 export type OriginFilter = string
