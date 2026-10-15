@@ -68,9 +68,17 @@ export const initials = (n: string) =>
     .join('')
     .toUpperCase()
 
+/* ───────── Horario de atención de MARQ: lunes a viernes, 8 a 12:30 y 15 a 19 */
+const OPEN_DAYS = [1, 2, 3, 4, 5]
+const OPEN_BLOCKS: [number, number][] = [
+  [8 * 60, 12 * 60 + 30],
+  [15 * 60, 19 * 60],
+]
+
 export function isOutOfHours(t: number) {
   const d = new Date(t)
-  return d.getDay() === 0 || d.getDay() === 6 || d.getHours() < 9 || d.getHours() >= 19
+  const m = d.getHours() * 60 + d.getMinutes()
+  return !OPEN_DAYS.includes(d.getDay()) || !OPEN_BLOCKS.some(([from, to]) => m >= from && m < to)
 }
 
 /* ───────── Sound: soft two-note chime generated with WebAudio */
