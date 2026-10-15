@@ -427,19 +427,27 @@ export const useStore = create<State>((set, get) => {
       const camp = get().campaigns.find((x) => x.id === c?.campaignId)
       if (!c || !camp) return
       const event: ConversionEvent = stage === 'reunion' ? 'Reunión programada' : stage === 'realizada' ? 'Reunión realizada' : 'Reserva'
-      const before = ['pendiente', 'respondida', 'conversacion', 'descartada'].includes(from)
+      // Cada contacto suma una sola vez por evento: ir y volver entre etapas no vuelve a contar
+      const sent = new Set(camp.conversions.filter((x) => x.contactId === id).map((x) => x.event))
+      const pastMeeting = ['reunion', 'realizada', 'propuesta', 'reserva'].includes(from)
+      const pastDone = ['propuesta', 'reserva'].includes(from)
+      const addScheduled =
+        (stage === 'reunion' || stage === 'realizada') && !pastMeeting && !sent.has('Reunión programada') && !sent.has('Reunión realizada')
+      const addDone = stage === 'realizada' && !pastDone && !sent.has('Reunión realizada')
+      const addReservation = stage === 'reserva' && !sent.has('Reserva')
+      if (!addScheduled && !addDone && !addReservation) return
       set((s) => ({
         campaigns: s.campaigns.map((x) =>
           x.id !== camp.id
             ? x
             : {
                 ...x,
-                ...(stage === 'reunion' || (stage === 'realizada' && before)
+                ...(addScheduled
                   ? { prevCpm: x.meetingsScheduled ? x.spent / x.meetingsScheduled : undefined, droppedAt: Date.now() }
                   : {}),
-                meetingsScheduled: x.meetingsScheduled + (stage === 'reunion' || (stage === 'realizada' && before) ? 1 : 0),
-                meetingsDone: x.meetingsDone + (stage === 'realizada' ? 1 : 0),
-                reservations: x.reservations + (stage === 'reserva' ? 1 : 0),
+                meetingsScheduled: x.meetingsScheduled + (addScheduled ? 1 : 0),
+                meetingsDone: x.meetingsDone + (addDone ? 1 : 0),
+                reservations: x.reservations + (addReservation ? 1 : 0),
                 conversions: [{ id: uid('cv'), contactId: id, name: c.name, event, at: Date.now() }, ...x.conversions],
               },
         ),
