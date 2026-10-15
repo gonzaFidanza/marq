@@ -8,7 +8,7 @@ import {
   PartyPopper,
   Archive,
 } from 'lucide-react'
-import type { Channel, Classification, Development, StageId } from '../types'
+import type { Channel, Classification, DevStage, Development, StageId, Timeline } from '../types'
 
 export const STAGES: { id: StageId; label: string; short: string; icon: typeof Inbox; color: string }[] = [
   { id: 'pendiente', label: 'Consulta pendiente', short: 'Pendiente', icon: Inbox, color: '#C08A3E' },
@@ -75,6 +75,25 @@ export const DISCARD_REASONS = [
 
 const u = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=800&q=70`
 
+/** Primer día del mes */
+const on = (year: number, month: number) => new Date(year, month - 1, 1).getTime()
+
+/** Medianoche de dentro de n días */
+const inDays = (n: number) => {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d.getTime() + n * 86_400_000
+}
+
+/** Si la entrega llega a tiempo para el plazo del contacto; null si el plazo no tiene fecha */
+export const fitsTimeline = (dev: Development, t?: Timeline) => (t?.by ? dev.deliveryAt <= t.by : null)
+
+export const DEV_STAGES: Record<DevStage, { label: string; short: string }> = {
+  pozo: { label: 'Pozo (preventa)', short: 'Pozo' },
+  obra: { label: 'En obra', short: 'Obra' },
+  terminado: { label: 'Terminado', short: 'Terminado' },
+}
+
 export const DEVELOPMENTS: Development[] = [
   {
     id: 'colegiales',
@@ -84,6 +103,10 @@ export const DEVELOPMENTS: Development[] = [
     status: 'En obra',
     delivery: 'Entrega dic. 2027',
     progress: 46,
+    stage: 'obra',
+    deliveryAt: on(2027, 12),
+    nextStage: { to: 'terminado', at: on(2027, 12), increase: 0.1 },
+    anticipo: 0.3,
     image: u('photo-1545324418-cc1a3fa10c00'),
     gradient: 'linear-gradient(135deg,#c9b79c 0%,#8f9a78 55%,#4a5a3a 100%)',
     typologies: [
@@ -100,6 +123,11 @@ export const DEVELOPMENTS: Development[] = [
     status: 'En pozo',
     delivery: 'Entrega 2028',
     progress: 12,
+    stage: 'pozo',
+    deliveryAt: on(2028, 6),
+    // Para la demo, el paso a obra siempre queda a tres semanas
+    nextStage: { to: 'obra', at: inDays(21), increase: 0.08 },
+    anticipo: 0.25,
     image: u('photo-1486406146926-c627a92ad1ab'),
     gradient: 'linear-gradient(135deg,#d8c7b0 0%,#b88f73 55%,#6d4d3d 100%)',
     typologies: [
@@ -115,6 +143,8 @@ export const DEVELOPMENTS: Development[] = [
     status: 'Últimas unidades',
     delivery: 'Entregado 2024',
     progress: 100,
+    stage: 'terminado',
+    deliveryAt: on(2024, 6),
     image: u('photo-1600585154340-be6161a56a0c'),
     gradient: 'linear-gradient(135deg,#d6d3c9 0%,#8d98a3 55%,#3f4b58 100%)',
     typologies: [
@@ -130,6 +160,10 @@ export const DEVELOPMENTS: Development[] = [
     status: 'En obra',
     delivery: 'Entrega mar. 2027',
     progress: 71,
+    stage: 'obra',
+    deliveryAt: on(2027, 3),
+    nextStage: { to: 'terminado', at: on(2027, 3), increase: 0.07 },
+    anticipo: 0.3,
     image: u('photo-1502672260266-1c1ef2d93688'),
     gradient: 'linear-gradient(135deg,#e2d6c2 0%,#a9a07f 55%,#5b5a3c 100%)',
     typologies: [

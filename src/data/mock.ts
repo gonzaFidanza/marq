@@ -26,6 +26,9 @@ function lastSaturday(h: number, mi: number) {
 }
 const satNight = NOW - lastSaturday(22, 47)
 
+/** Primer día de un mes, para los plazos de los contactos */
+const by = (year: number, month: number) => new Date(year, month - 1, 1).getTime()
+
 let hid = 0
 const h = (date: string, title: string, kind: Contact['history'][number]['kind'], detail?: string) => ({
   id: `h${hid++}`,
@@ -197,6 +200,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     classification: 'previo',
     confidence: 0.82,
     tags: ['Consultó en 2025', 'Busca 3 ambientes', 'Tiene propiedad para vender'],
+    timeline: { label: 'Cuando venda su PH' },
     developmentId: 'belgrano',
     typology: '3 ambientes',
     stage: 'respondida',
@@ -300,6 +304,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     classification: 'nuevo',
     confidence: 0.76,
     tags: ['Busca 3 ambientes', 'Familia', 'Mascotas'],
+    timeline: { label: 'Antes de las clases de 2028', by: by(2028, 2) },
     developmentId: 'urquiza',
     typology: '3 ambientes',
     stage: 'conversacion',
@@ -311,7 +316,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     messages: [
       m('c', 'Hola! tienen 3 amb con patio? somos 4 + un perro grande jaja', 4 * D + 5 * H),
       m('a', 'Hola Camila! En Villa Urquiza tenemos dos 3 ambientes en planta baja con patio de 28 m² 🐶', 4 * D + 4 * H, { by: 'tomas', viaDraft: true }),
-      m('c', 'Ay me encanta. Y se aceptan mascotas en el reglamento?', 4 * D + 3 * H),
+      m('c', 'Ay me encanta. Y se aceptan mascotas en el reglamento? Necesitamos estar mudados antes de que empiecen las clases de 2028, por los chicos.', 4 * D + 3 * H),
       m('a', '¡Sí! El reglamento permite mascotas y hay un pet spot en la terraza.', 4 * D + 2 * H, { by: 'tomas' }),
     ],
     history: [h('Hace 4 días', 'Primera consulta por Instagram', 'consulta')],
@@ -376,6 +381,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     classification: 'nuevo',
     confidence: 0.81,
     tags: ['Busca 3 ambientes', 'Se muda desde Córdoba'],
+    timeline: { label: 'Se muda en enero', by: by(2027, 1) },
     developmentId: 'belgrano',
     typology: '3 ambientes',
     stage: 'reunion',
@@ -433,6 +439,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     classification: 'nuevo',
     confidence: 0.8,
     tags: ['Primera vivienda', 'Busca 2 ambientes'],
+    timeline: { label: 'Sin apuro: quiere pagar en cuotas' },
     developmentId: 'urquiza',
     typology: '2 ambientes',
     stage: 'realizada',

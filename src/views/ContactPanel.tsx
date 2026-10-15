@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUpRight, Megaphone, Check, ChevronDown, Mail, Phone, AtSign, Loader2, Building2, CalendarDays, MessageSquare, KeyRound, FileText, Eye, Info } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, CalendarClock, Megaphone, Check, ChevronDown, Mail, Phone, AtSign, Loader2, Building2, CalendarDays, MessageSquare, KeyRound, FileText, Eye, Info } from 'lucide-react'
 import { useFillPrices, useStore } from '../store'
 import type { Classification, Contact, HistoryItem } from '../types'
 import { Avatar, ChannelPill, SparkleIcon, StagePill } from '../components/ui'
-import { CLASSIFICATIONS, devById, stageById } from '../data/config'
+import { CLASSIFICATIONS, devById, fitsTimeline, stageById } from '../data/config'
 import { cn, dayLabel, stageAgeLabel } from '../lib/utils'
 import { MiniAd, OriginChip } from '../components/attraction-ui'
 import { ORIGINS, originOf } from '../data/attraction'
@@ -66,8 +66,19 @@ export function ContactPanel({ c }: { c: Contact }) {
               <div className="shimmer h-6 w-20 rounded-full" />
               <div className="shimmer h-6 w-28 rounded-full" />
             </div>
-          ) : c.tags.length ? (
+          ) : c.tags.length || c.timeline ? (
             <div className="flex flex-wrap gap-1.5">
+              {c.timeline && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                  title="Para cuándo necesita la unidad"
+                  className="inline-flex items-center gap-1 rounded-full border border-accent/25 bg-accent-soft px-2.5 py-1 text-[11.5px] font-medium text-accent"
+                >
+                  <CalendarClock size={12} /> {c.timeline.label}
+                </motion.span>
+              )}
               {c.tags.map((t, i) => (
                 <motion.span
                   key={t}
@@ -123,6 +134,7 @@ export function ContactPanel({ c }: { c: Contact }) {
               </span>
               <ListPrice developmentId={c.developmentId} typology={c.typology} />
             </div>
+            <TimelineFit c={c} />
             {dev.progress < 100 && (
               <div className="px-3.5 pb-3">
                 <div className="flex justify-between text-[10.5px] text-ink-3">
@@ -212,6 +224,25 @@ function OriginCard({ c }: { c: Contact }) {
           Ver campaña <ArrowUpRight size={13} />
         </button>
       </div>
+    </div>
+  )
+}
+
+/** Si la entrega del desarrollo llega a tiempo para lo que necesita el contacto */
+function TimelineFit({ c }: { c: Contact }) {
+  const fits = fitsTimeline(devById(c.developmentId), c.timeline)
+  if (fits === null || !c.timeline) return null
+  return (
+    <div
+      className={cn(
+        'mx-3.5 mb-3 flex items-start gap-1.5 rounded-lg px-2.5 py-2 text-[11px] leading-snug',
+        fits ? 'bg-accent-soft text-accent' : 'bg-[#c0673f]/10 text-[#b0603c]',
+      )}
+    >
+      {fits ? <Check size={12} className="mt-px shrink-0" /> : <AlertTriangle size={12} className="mt-px shrink-0" />}
+      <span>
+        {fits ? 'La entrega llega a tiempo para su plazo' : 'La entrega es después de su plazo'} ({c.timeline.label.toLowerCase()}).
+      </span>
     </div>
   )
 }

@@ -73,6 +73,8 @@ export interface Contact {
   /** Origen cuando no viene de pauta */
   origin?: Origin
   originDate?: string
+  /** Para cuándo necesita la unidad */
+  timeline?: Timeline
 }
 
 export type Origin = 'campana' | 'recomendacion' | 'organico' | 'portal' | 'cliente'
@@ -151,6 +153,23 @@ export interface Development {
   image: string
   gradient: string
   typologies: { label: string; from: number }[]
+  /** Etapa comercial: el precio sube en cada paso */
+  stage: DevStage
+  /** Fecha de entrega (posesión) */
+  deliveryAt: number
+  /** Próximo cambio de etapa y cuánto suben los valores */
+  nextStage?: { to: DevStage; at: number; increase: number }
+  /** Anticipo para comprar en pozo u obra; el resto en cuotas hasta la entrega */
+  anticipo?: number
+}
+
+export type DevStage = 'pozo' | 'obra' | 'terminado'
+
+/** Para cuándo necesita la unidad el contacto, detectado en la conversación */
+export interface Timeline {
+  label: string
+  /** Fecha límite; sin fecha si depende de otra cosa o no tiene apuro */
+  by?: number
 }
 
 /** Un cambio confirmado en la lista de precios */
