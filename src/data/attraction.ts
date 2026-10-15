@@ -1,5 +1,6 @@
 import type { AdSegment, Campaign, CampaignDraft, Contact, Conversion, Origin, Profile } from '../types'
 import { CLASSIFICATIONS, CHANNELS, devById, priceFor } from './config'
+import { priceToken } from './pricing'
 import { D, H, MIN, NOW } from './mock'
 import { usd } from '../lib/utils'
 
@@ -76,7 +77,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 22,
     meetingsDone: 15,
     reservations: 3,
-    adText: `Tu primer 2 ambientes en Colegiales, con crédito hipotecario. Desde ${usd(priceFor('colegiales', '2 ambientes'))}.`,
+    adText: `Tu primer 2 ambientes en Colegiales, con crédito hipotecario. Desde ${priceToken('colegiales', '2 ambientes')}.`,
     conversions: [
       conv('Federico A.', 'Reunión realizada', 5 * H),
       conv('Sabrina L.', 'Reunión programada', 1 * D + 2 * H),
@@ -100,7 +101,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 9,
     meetingsDone: 6,
     reservations: 0,
-    adText: `Nuevo lanzamiento en Villa Urquiza. 2 y 3 ambientes desde ${usd(priceFor('urquiza', '2 ambientes'))}. ¡Consultá!`,
+    adText: `Nuevo lanzamiento en Villa Urquiza. 2 y 3 ambientes desde ${priceToken('urquiza', '2 ambientes')}. ¡Consultá!`,
     conversions: [
       conv('Marcos T.', 'Reunión programada', 2 * D + 3 * H),
       conv('Elena G.', 'Reunión realizada', 6 * D),
@@ -121,7 +122,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 12,
     meetingsDone: 9,
     reservations: 2,
-    adText: `Monoambientes en Núñez a 6 cuadras de Ciudad Universitaria. Desde ${usd(priceFor('nunez', 'Monoambiente'))}.`,
+    adText: `Monoambientes en Núñez a 6 cuadras de Ciudad Universitaria. Desde ${priceToken('nunez', 'Monoambiente')}.`,
     conversions: [
       conv('Rocío Fernández', 'Reserva', 5 * D, 'rocio'),
       conv('Gastón P.', 'Reunión programada', 1 * D + 5 * H),
@@ -143,7 +144,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 5,
     meetingsDone: 4,
     reservations: 1,
-    adText: `Últimos 3 ambientes en Belgrano R, listos para mudarse. Desde ${usd(priceFor('belgrano', '3 ambientes'))}.`,
+    adText: `Últimos 3 ambientes en Belgrano R, listos para mudarse. Desde ${priceToken('belgrano', '3 ambientes')}.`,
     conversions: [conv('Horacio V.', 'Reserva', 14 * D), conv('Lía B.', 'Reunión realizada', 18 * D)],
   },
   {
@@ -266,7 +267,7 @@ export const TEMPLATES: Record<string, () => Template> = {
       q('con crédito hipotecario', '¿Aceptan crédito hipotecario?', 68),
       { t: '. ' },
       q('Entrega diciembre 2027', '¿Cuándo es la entrega?', 41),
-      { t: `. Desde ${usd(priceFor('colegiales', '2 ambientes'))}, ` },
+      { t: `. Desde ${priceToken('colegiales', '2 ambientes')}, ` },
       q('30% de anticipo y cuotas en pesos durante la obra', '¿Cuánto es el anticipo?', 33),
       { t: '. Escribinos y coordinamos una visita al departamento modelo.' },
     ],
@@ -293,7 +294,7 @@ export const TEMPLATES: Record<string, () => Template> = {
       q('Entrega marzo 2027', '¿Cuándo es la entrega?', 44),
       { t: ', con ' },
       q('cesión de boleto permitida antes de escriturar', '¿Se puede ceder antes de la escritura?', 29),
-      { t: `. Desde ${usd(priceFor('nunez', 'Monoambiente'))}.` },
+      { t: `. Desde ${priceToken('nunez', 'Monoambiente')}.` },
     ],
     reasoning:
       'Núñez inversores lleva 12 reuniones con ARS 860.000 (ARS 71.667 cada una). Sumamos ARS 280.000 por 10 días con un texto que responde rentabilidad y cesión, las dos preguntas que hoy demoran la primera reunión.',
@@ -315,7 +316,7 @@ export const TEMPLATES: Record<string, () => Template> = {
       q('Como cliente MARQ mantenés tu 3% de beneficio', '¿Mantengo el beneficio de cliente?', 52),
       { t: ' y ' },
       q('podés entregar tu depto actual como parte de pago', '¿Puedo entregar mi depto como parte de pago?', 31),
-      { t: `. Desde ${usd(priceFor('belgrano', '3 ambientes'))}.` },
+      { t: `. Desde ${priceToken('belgrano', '3 ambientes')}.` },
     ],
     reasoning:
       'Los clientes conocidos son el perfil que más avanza (58% llega a reunión). La campaña de Belgrano R está pausada; proponemos reactivarla con ARS 180.000 por 10 días, solo para clientes MARQ y personas parecidas a ellos.',
@@ -337,7 +338,7 @@ export const TEMPLATES: Record<string, () => Template> = {
       q('con crédito hipotecario al escriturar', '¿Aceptan crédito hipotecario?', 68),
       { t: '. ' },
       q('Anticipo del 25% y el resto en cuotas en pesos', '¿Cuánto es el anticipo?', 33),
-      { t: `. Desde ${usd(priceFor('urquiza', '2 ambientes'))}, ` },
+      { t: `. Desde ${priceToken('urquiza', '2 ambientes')}, ` },
       q('entrega 2028', '¿Cuándo es la entrega?', 41),
       { t: '.' },
     ],
@@ -358,7 +359,7 @@ export const TEMPLATES: Record<string, () => Template> = {
     days: 10,
     cta: 'Más información',
     segments: [
-      { t: `Invertí en Colegiales: monoambientes desde ${usd(priceFor('colegiales', 'Monoambiente'))}. ` },
+      { t: `Invertí en Colegiales: monoambientes desde ${priceToken('colegiales', 'Monoambiente')}. ` },
       q('Rentabilidad estimada de 5,5% a 6% anual', '¿Qué rentabilidad tiene?', 57),
       { t: ', ' },
       q('entrega diciembre 2027', '¿Cuándo es la entrega?', 44),
@@ -382,7 +383,7 @@ export const TEMPLATES: Record<string, () => Template> = {
     days: 14,
     cta: 'Enviar mensaje',
     segments: [
-      { t: `Como quienes ya viven en MARQ: 2 ambientes en Núñez desde ${usd(priceFor('nunez', '2 ambientes'))}. ` },
+      { t: `Como quienes ya viven en MARQ: 2 ambientes en Núñez desde ${priceToken('nunez', '2 ambientes')}. ` },
       q('Si venís recomendado, tenés beneficio en el anticipo', '¿Tengo beneficio por venir recomendado?', 61),
       { t: '. ' },
       q('Visitá un departamento terminado cuando quieras', '¿Puedo ver un departamento terminado?', 38),
@@ -403,7 +404,7 @@ export const TEMPLATES: Record<string, () => Template> = {
     budget: 900_000,
     days: 21,
     cta: 'Más información',
-    segments: [{ t: `Nuevo en Villa Urquiza: 3 ambientes desde ${usd(priceFor('urquiza', '3 ambientes'))}. Consultá por financiación.` }],
+    segments: [{ t: `Nuevo en Villa Urquiza: 3 ambientes desde ${priceToken('urquiza', '3 ambientes')}. Consultá por financiación.` }],
     reasoning: 'Ampliar alcance del lanzamiento de Villa Urquiza a todo CABA y GBA norte.',
     signals: [{ id: 'sig-dev', label: 'Villa Urquiza 3 amb' }],
   }),

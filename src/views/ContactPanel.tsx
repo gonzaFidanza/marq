@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowUpRight, Megaphone, Check, ChevronDown, Mail, Phone, AtSign, Loader2, Building2, CalendarDays, MessageSquare, KeyRound, FileText, Eye, Info } from 'lucide-react'
-import { useStore } from '../store'
+import { useFillPrices, useStore } from '../store'
 import type { Classification, Contact, HistoryItem } from '../types'
 import { Avatar, ChannelPill, SparkleIcon, StagePill } from '../components/ui'
-import { CLASSIFICATIONS, devById, priceFor, stageById } from '../data/config'
-import { cn, dayLabel, stageAgeLabel, usd } from '../lib/utils'
+import { CLASSIFICATIONS, devById, stageById } from '../data/config'
+import { cn, dayLabel, stageAgeLabel } from '../lib/utils'
 import { MiniAd, OriginChip } from '../components/attraction-ui'
 import { ORIGINS, originOf } from '../data/attraction'
+import { ListPrice } from './Prices'
 
 const section = {
   hidden: { opacity: 0, y: 10 },
@@ -120,9 +121,7 @@ export function ContactPanel({ c }: { c: Contact }) {
               <span className="flex items-center gap-1.5 text-ink-2">
                 <Building2 size={13} className="text-ink-3" /> {c.typology}
               </span>
-              <span className="font-medium text-ink">
-                desde {usd(priceFor(c.developmentId, c.typology))}
-              </span>
+              <ListPrice developmentId={c.developmentId} typology={c.typology} />
             </div>
             {dev.progress < 100 && (
               <div className="px-3.5 pb-3">
@@ -182,6 +181,7 @@ const ORIGIN_DESC: Record<string, string> = {
 
 function OriginCard({ c }: { c: Contact }) {
   const campaign = useStore((s) => s.campaigns.find((x) => x.id === c.campaignId))
+  const fill = useFillPrices()
   const o = originOf(c)
   if (o !== 'campana' || !campaign) {
     return (
@@ -196,7 +196,7 @@ function OriginCard({ c }: { c: Contact }) {
   const open = () => useStore.setState({ view: 'attraction', attractionTab: 'campanas', campaignDrawerId: campaign.id, drawerId: null, metaUnseen: 0 })
   return (
     <div className="flex gap-3 rounded-2xl border bg-surface p-3 shadow-soft" style={{ borderColor: ORIGINS.campana.color + '40' }}>
-      <MiniAd developmentId={campaign.developmentId} text={campaign.adText} />
+      <MiniAd developmentId={campaign.developmentId} text={fill(campaign.adText)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <p className="flex items-start gap-1.5 text-[12.5px] leading-snug font-semibold" style={{ color: ORIGINS.campana.color }}>
           <Megaphone size={13} className="mt-0.5 shrink-0" /> Camp. {campaign.name}

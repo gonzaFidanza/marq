@@ -5,6 +5,7 @@ import { Sidebar } from './components/Sidebar'
 import { Header } from './components/Header'
 import { Toasts } from './components/Toasts'
 import { Login } from './components/Login'
+import { Today } from './views/Today'
 import { Inbox } from './views/Inbox'
 import { Board } from './views/Board'
 import { Metrics } from './views/Metrics'
@@ -12,6 +13,7 @@ import { CardDrawer, DiscardModal } from './views/Overlays'
 import { Attraction } from './views/attraction/Attraction'
 import { CampaignDrawer } from './views/attraction/Campaigns'
 import { DraftDiscardModal } from './views/attraction/Overlays'
+import { PriceImpactModal, PricesDrawer } from './views/Prices'
 import { Beams } from './components/Beams'
 
 export default function App() {
@@ -21,8 +23,10 @@ export default function App() {
   const pendingDiscard = useStore((s) => s.pendingDiscard)
   const campaignDrawerId = useStore((s) => s.campaignDrawerId)
   const pendingDraftDiscard = useStore((s) => s.pendingDraftDiscard)
+  const pricesOpen = useStore((s) => s.pricesOpen)
+  const pendingPrice = useStore((s) => s.pendingPrice)
 
-  // Presentation mode: N simula una consulta entrante, C genera una propuesta de campaña
+  // Presentation mode: N simula una consulta entrante, C genera una propuesta de campaña, P una baja de precio
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
@@ -32,15 +36,20 @@ export default function App() {
       if (!s.loggedIn) return
       if (e.key === 'n' || e.key === 'N') s.simulateIncoming()
       if (e.key === 'c' || e.key === 'C') s.generateCampaign()
-      if (e.key === '1') s.setView('inbox')
-      if (e.key === '2') s.setView('board')
-      if (e.key === '3') s.setView('attraction')
-      if (e.key === '4') s.setView('metrics')
+      if (e.key === 'p' || e.key === 'P') s.simulatePriceChange()
+      if (e.key === '1') s.setView('hoy')
+      if (e.key === '2') s.setView('inbox')
+      if (e.key === '3') s.setView('board')
+      if (e.key === '4') s.setView('attraction')
+      if (e.key === '5') s.setView('metrics')
       if (e.key === 'Escape') {
+        // Con el impacto de un precio abierto, Escape cierra solo ese paso
+        if (s.pendingPrice) return s.cancelPrice()
         s.openDrawer(null)
         s.setRemindersOpen(false)
         s.openCampaign(null)
         s.cancelDraftDiscard()
+        s.closePrices()
       }
     }
     window.addEventListener('keydown', onKey)
@@ -70,6 +79,7 @@ export default function App() {
                   transition={{ duration: 0.25, ease: 'easeOut' }}
                   className="absolute inset-0"
                 >
+                  {view === 'hoy' && <Today />}
                   {view === 'inbox' && <Inbox />}
                   {view === 'board' && <Board />}
                   {view === 'attraction' && <Attraction />}
@@ -84,6 +94,10 @@ export default function App() {
       <AnimatePresence>{pendingDiscard && <DiscardModal key="discard" id={pendingDiscard} />}</AnimatePresence>
       <AnimatePresence>{campaignDrawerId && <CampaignDrawer key={campaignDrawerId} id={campaignDrawerId} />}</AnimatePresence>
       <AnimatePresence>{pendingDraftDiscard && <DraftDiscardModal key="ddiscard" id={pendingDraftDiscard} />}</AnimatePresence>
+      <AnimatePresence>{pricesOpen && <PricesDrawer key="prices" />}</AnimatePresence>
+      <AnimatePresence>
+        {pendingPrice && <PriceImpactModal key={`${pendingPrice.developmentId}/${pendingPrice.typology}/${pendingPrice.to}`} p={pendingPrice} />}
+      </AnimatePresence>
       <Beams />
       <Toasts />
     </>

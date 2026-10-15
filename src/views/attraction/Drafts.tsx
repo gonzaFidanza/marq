@@ -19,10 +19,10 @@ import {
   Target,
   X,
 } from 'lucide-react'
-import { useStore } from '../../store'
+import { useFillPrices, useLastPriceChange, usePrice, useStore } from '../../store'
 import type { AdSegment, CampaignDraft, DraftStatus } from '../../types'
 import { PROFILES, adText, resegment } from '../../data/attraction'
-import { devById, priceFor } from '../../data/config'
+import { devById, listPriceKey } from '../../data/config'
 import { SparkleIcon } from '../../components/ui'
 import { AnimatedNumber, DevImage, MarqAvatar, ProfileChip } from '../../components/attraction-ui'
 import { ars, cn, relTime, usd } from '../../lib/utils'
@@ -246,7 +246,10 @@ function GeneratingStage({ step }: { step: number }) {
 /* ───────────────────────── Columna central */
 
 function DraftPreview({ d, edit, setEdit }: { d: CampaignDraft; edit: Edit | null; setEdit: (e: Edit | null) => void }) {
-  const text = adText(d.segments)
+  const fill = useFillPrices()
+  // Los tramos llegan con la marca de precio: se completan con la lista vigente
+  const filled = useMemo(() => d.segments.map((s) => ({ ...s, t: fill(s.t) })), [d.segments, fill])
+  const text = adText(filled)
   const key = 'cd:' + d.id + text.length
   const typedAlready = useStore((s) => !!s.typedDrafts[key])
   const markTyped = useStore((s) => s.markTyped)
@@ -287,18 +290,18 @@ function DraftPreview({ d, edit, setEdit }: { d: CampaignDraft; edit: Edit | nul
   }
 
   // Mientras se edita, el anuncio muestra el texto nuevo en vivo
-  const segments: AdSegment[] = edit ? resegment(edit.text, d.segments) : d.segments
-  const shown = edit ? edit.text.length : n
+  const segments: AdSegment[] = edit ? resegment(edit.text, filled) : filled
+  const shown = edit ? edit.text.length : phase === 'done' ? text.length : n
   const annotations = useMemo(() => {
     let off = 0
-    return d.segments
+    return filled
       .map((s) => {
         const start = off
         off += s.t.length
         return { ...s, end: off, start }
       })
       .filter((s) => s.q)
-  }, [d.segments])
+  }, [filled])
 
   return (
     <section className="relative flex min-w-0 flex-1 flex-col bg-bg">
@@ -524,6 +527,7 @@ type AdProps = { d: CampaignDraft; segments: AdSegment[]; shown: number; typing:
 
 function PostAd({ d, segments, shown, typing, thinking, hover }: AdProps) {
   const dev = devById(d.developmentId)
+  const price = usePrice(d.developmentId, d.typology)
   return (
     <div className="pt-8 text-[#111]">
       <div className="flex items-center gap-2.5 px-3 py-2">
@@ -540,7 +544,7 @@ function PostAd({ d, segments, shown, typing, thinking, hover }: AdProps) {
           <p className="text-[10px] font-semibold tracking-[0.18em] uppercase opacity-80">MARQ</p>
           <p className="font-serif text-[24px] leading-none">{dev.neighborhood}</p>
           <p className="mt-1 text-[11px] opacity-85">
-            {d.typology} · desde {usd(priceFor(d.developmentId, d.typology))}
+            {d.typology} · desde {usd(price)}
           </p>
         </div>
       </DevImage>
@@ -686,6 +690,7 @@ function ApprovalPanel({
   setEdit: (e: Edit | null) => void
   onApprove: () => void
 }) {
+  const fill = useFillPrices()
   const requestDiscard = useStore((s) => s.requestDraftDiscard)
   const saveDraftEdit = useStore((s) => s.saveDraftEdit)
   const markTyped = useStore((s) => s.markTyped)
@@ -794,7 +799,7 @@ function ApprovalPanel({
                 <Check size={15} strokeWidth={2.4} /> Aprobar y publicar
               </motion.button>
               <button
-                onClick={() => setEdit({ text: adText(d.segments), budget: d.budget, days: d.days })}
+                onClick={() => setEdit({ text: fill(adText(d.segments)), budget: d.budget, days: d.days })}
                 className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 py-2 text-[13px] font-medium text-ink transition hover:border-line-strong hover:bg-surface-2"
               >
                 <Pencil size={14} /> Editar
@@ -830,7 +835,9 @@ function Label({ children }: { children: React.ReactNode }) {
 function DraftSheet({ d, edit, setEdit, dim }: { d: CampaignDraft; edit: Edit | null; setEdit: (e: Edit | null) => void; dim: boolean }) {
   const focusSignal = useStore((s) => s.focusSignal)
   const dev = devById(d.developmentId)
-  const price = priceFor(d.developmentId, d.typology)
+  const price = usePrice(d.developmentId, d.typology)
+  const change = useLastPriceChange(d.developmentId, d.typology)
+  const openPrices = useStore((s) => s.openPrices)
   const budget = edit?.budget ?? d.budget
   const days = edit?.days ?? d.days
 
@@ -872,8 +879,19 @@ function DraftSheet({ d, edit, setEdit, dim }: { d: CampaignDraft; edit: Edit | 
         <motion.div custom={2} variants={section} className="mt-6">
           <Label>Precio vigente</Label>
           <div className="rounded-2xl border border-line bg-surface p-3.5 shadow-soft">
-            <span className="text-[11.5px] text-ink-3">{d.typology} · desde</span>
-            <p className="mt-1 font-serif text-[28px] leading-none whitespace-nowrap text-ink">{usd(price)}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[11.5px] text-ink-3">{d.typology} · desde</span>
+              <button
+                onClick={() => openPrices(listPriceKey(d.developmentId, d.typology))}
+                className="-mr-1 flex items-center gap-1 rounded-lg px-2 py-1 text-[11.5px] font-medium text-accent transition hover:bg-accent-soft"
+              >
+                Lista de precios <ArrowUpRight size={12} />
+              </button>
+            </div>
+            <p className="mt-1 flex items-baseline gap-2 font-serif text-[28px] leading-none whitespace-nowrap text-ink">
+              {usd(price)}
+              {change && <span className="font-sans text-[12px] text-ink-3 line-through decoration-[#c0673f]/60">{usd(change.from)}</span>}
+            </p>
             <p className="mt-2.5 flex items-start gap-1.5 rounded-lg bg-surface-2 px-2.5 py-2 text-[11px] leading-snug text-ink-2">
               <Link2 size={12} className="mt-px shrink-0 text-accent" />
               <span>

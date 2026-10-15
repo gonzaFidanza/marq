@@ -1,6 +1,5 @@
 import type { Contact } from '../types'
-import { priceFor } from './config'
-import { usd } from '../lib/utils'
+import { priceToken } from './pricing'
 
 type SimTemplate = Omit<Contact, 'id' | 'messages' | 'stage' | 'stageSince' | 'unread' | 'assignee'> & {
   incoming: string[]
@@ -23,7 +22,7 @@ export const SIMULATIONS: SimTemplate[] = [
     ],
     history: [{ id: 'sh1', date: 'Ahora', title: 'Primera consulta por Instagram', kind: 'consulta', detail: 'Respondió a una historia del 2 ambientes' }],
     draft:
-      '¡Hola Micaela! Gracias por escribirnos 😊 Sí, en MARQ Colegiales aceptamos crédito hipotecario: el 2 ambientes arranca en USD 142.000 y la escritura se coordina con el banco que elijas. Como es tu primera vivienda, te propongo que vengas al showroom a ver el departamento modelo y te armamos una simulación de cuotas a medida. ¿Te queda bien este sábado a la mañana?',
+      `¡Hola Micaela! Gracias por escribirnos 😊 Sí, en MARQ Colegiales aceptamos crédito hipotecario: el 2 ambientes arranca en ${priceToken('colegiales', '2 ambientes')} y la escritura se coordina con el banco que elijas. Como es tu primera vivienda, te propongo que vengas al showroom a ver el departamento modelo y te armamos una simulación de cuotas a medida. ¿Te queda bien este sábado a la mañana?`,
     draftKind: 'respuesta',
     followUp: {
       text: '¡Buenísimo! El sábado a las 11 puedo, voy con mi novio 🙌',
@@ -48,7 +47,7 @@ export const SIMULATIONS: SimTemplate[] = [
       'Hola! Vi el anuncio del 2 ambientes en Colegiales 🙌 Ya tengo el crédito preaprobado en el Nación. ¿Sigue disponible el contrafrente del 3°? ¿Puedo ir a verlo esta semana?',
     ],
     history: [{ id: 'sh20', date: 'Ahora', title: 'Primera consulta por Instagram', kind: 'consulta', detail: 'Desde anuncio · Camp. Colegiales 1ª vivienda' }],
-    draft: `¡Hola Lautaro! Qué bueno que ya tengas el crédito preaprobado 🙌 El contrafrente del 3° sigue disponible: es el 2 ambientes más luminoso del edificio, a ${usd(priceFor('colegiales', '2 ambientes'))}. Te propongo que vengas al showroom a verlo y de paso revisamos juntos los plazos de escritura con el banco. ¿Te queda bien el jueves a las 18?`,
+    draft: `¡Hola Lautaro! Qué bueno que ya tengas el crédito preaprobado 🙌 El contrafrente del 3° sigue disponible: es el 2 ambientes más luminoso del edificio, a ${priceToken('colegiales', '2 ambientes')}. Te propongo que vengas al showroom a verlo y de paso revisamos juntos los plazos de escritura con el banco. ¿Te queda bien el jueves a las 18?`,
     draftKind: 'respuesta',
     followUp: {
       text: '¡Genial! Jueves 18 me viene perfecto, voy con mi pareja 🙂',
@@ -74,7 +73,7 @@ export const SIMULATIONS: SimTemplate[] = [
       { id: 'sh4', date: 'May 2023', title: 'Firmó boleto', kind: 'compra', detail: 'USD 246.000 · atendido por Candelaria' },
     ],
     draft:
-      '¡Hola Jorge! Qué alegría saber de vos. ¿Cómo va todo en el depto de Belgrano R? Para renta te recomiendo mirar MARQ Núñez: los monoambientes arrancan en USD 105.000 y la entrega es en marzo 2027, ideal para temporario por la cercanía a Ciudad Universitaria. Como ya sos cliente MARQ, tenés un 3% de beneficio. ¿Te llamo mañana y lo charlamos?',
+      `¡Hola Jorge! Qué alegría saber de vos. ¿Cómo va todo en el depto de Belgrano R? Para renta te recomiendo mirar MARQ Núñez: los monoambientes arrancan en ${priceToken('nunez', 'Monoambiente')} y la entrega es en marzo 2027, ideal para temporario por la cercanía a Ciudad Universitaria. Como ya sos cliente MARQ, tenés un 3% de beneficio. ¿Te llamo mañana y lo charlamos?`,
     draftKind: 'respuesta',
   },
   {
@@ -91,7 +90,7 @@ export const SIMULATIONS: SimTemplate[] = [
     summary: 'Llegó desde la campaña Núñez inversores. El anuncio le respondió rentabilidad y cesión; pregunta por el costo de ceder el boleto.',
     incoming: ['Hola, vi el anuncio de los monoambientes en Núñez. Si compro ahora, ¿qué costo tiene ceder el boleto antes de la entrega?'],
     history: [{ id: 'sh21', date: 'Ahora', title: 'Primera consulta por WhatsApp', kind: 'consulta', detail: 'Desde anuncio · Camp. Núñez inversores' }],
-    draft: `Hola Carla, ¡gracias por escribirnos! La cesión de boleto tiene un costo del 2% sobre el valor de la unidad y se puede hacer una vez abonado el 50%. Los monoambientes de MARQ Núñez arrancan en ${usd(priceFor('nunez', 'Monoambiente'))}, con entrega en marzo 2027. ¿Te armo una proyección de rentabilidad con y sin cesión y la charlamos por videollamada?`,
+    draft: `Hola Carla, ¡gracias por escribirnos! La cesión de boleto tiene un costo del 2% sobre el valor de la unidad y se puede hacer una vez abonado el 50%. Los monoambientes de MARQ Núñez arrancan en ${priceToken('nunez', 'Monoambiente')}, con entrega en marzo 2027. ¿Te armo una proyección de rentabilidad con y sin cesión y la charlamos por videollamada?`,
     draftKind: 'respuesta',
     followUp: {
       text: 'Dale, me sirve. ¿Mañana a las 12 por Meet?',
@@ -131,7 +130,7 @@ export const SIMULATIONS: SimTemplate[] = [
     summary: 'Llegó desde la campaña amplia de Villa Urquiza con una consulta de una palabra. Todavía no sabemos qué busca.',
     incoming: ['precio? 👀'],
     history: [{ id: 'sh22', date: 'Ahora', title: 'Consulta por Instagram', kind: 'consulta', detail: 'Desde anuncio · Camp. Villa Urquiza lanzamiento' }],
-    draft: `¡Hola Sol! Gracias por escribirnos 😊 En MARQ Villa Urquiza los 2 ambientes arrancan en ${usd(priceFor('urquiza', '2 ambientes'))} y los 3 ambientes en ${usd(priceFor('urquiza', '3 ambientes'))}. Para recomendarte la unidad justa: ¿buscás para vivir o para invertir?`,
+    draft: `¡Hola Sol! Gracias por escribirnos 😊 En MARQ Villa Urquiza los 2 ambientes arrancan en ${priceToken('urquiza', '2 ambientes')} y los 3 ambientes en ${priceToken('urquiza', '3 ambientes')}. Para recomendarte la unidad justa: ¿buscás para vivir o para invertir?`,
     draftKind: 'respuesta',
   },
   {
@@ -176,7 +175,7 @@ export const SIMULATIONS: SimTemplate[] = [
       { id: 'sh11', date: 'Ene 2026', title: 'Sofía Carrizo compró en Colegiales', kind: 'compra', detail: 'Relación detectada: hermana' },
     ],
     draft:
-      '¡Hola Bruno! Qué lindo que te haya recomendado Sofía, gracias por confiar en nosotros 😊 En MARQ Colegiales, el mismo edificio donde compró tu hermana, todavía tenemos 2 ambientes desde USD 142.000. Por venir referido tenés un beneficio especial en el anticipo. ¿Querés venir con tu novia a ver el modelo? Te propongo el jueves a la tarde.',
+      `¡Hola Bruno! Qué lindo que te haya recomendado Sofía, gracias por confiar en nosotros 😊 En MARQ Colegiales, el mismo edificio donde compró tu hermana, todavía tenemos 2 ambientes desde ${priceToken('colegiales', '2 ambientes')}. Por venir referido tenés un beneficio especial en el anticipo. ¿Querés venir con tu novia a ver el modelo? Te propongo el jueves a la tarde.`,
     draftKind: 'respuesta',
   },
   {
@@ -194,7 +193,7 @@ export const SIMULATIONS: SimTemplate[] = [
     incoming: ['Busco 3 ambientes con balcón y cochera, presupuesto hasta USD 230.000, zona Núñez o Belgrano. ¿Tienen algo?'],
     history: [{ id: 'sh12', date: 'Ahora', title: 'Consulta desde Argenprop', kind: 'consulta' }],
     draft:
-      'Hola Hernán, gracias por escribirnos. Con ese presupuesto, la mejor opción es el 3 ambientes de MARQ Colegiales: balcón corrido, cochera incluida y USD 215.000, a 10 minutos de Belgrano. En Belgrano R los 3 ambientes arrancan en USD 265.000. ¿Te mando los planos y coordinamos una llamada?',
+      `Hola Hernán, gracias por escribirnos. Con ese presupuesto, la mejor opción es el 3 ambientes de MARQ Colegiales: balcón corrido, cochera incluida y ${priceToken('colegiales', '3 ambientes')}, a 10 minutos de Belgrano. En Belgrano R los 3 ambientes arrancan en ${priceToken('belgrano', '3 ambientes')}. ¿Te mando los planos y coordinamos una llamada?`,
     draftKind: 'respuesta',
   },
 ]
