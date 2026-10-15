@@ -210,10 +210,14 @@ export const INITIAL_CONTACTS: Contact[] = [
     hue: 250,
     summary: 'Consultó el año pasado. Necesita vender su PH en Saavedra para comprar. Sin respuesta hace 9 días.',
     messages: [
-      m('c', 'Hola, ¿siguen teniendo 3 ambientes en Belgrano R? Consulto desde Argenprop.', 9 * D + 4 * H),
+      m(
+        'c',
+        'Hola, ¿siguen teniendo 3 ambientes en Belgrano R? Consulto desde Argenprop. Ya les había consultado el año pasado: compraría cuando venda mi PH en Saavedra, que lo acabo de poner a la venta.',
+        9 * D + 4 * H,
+      ),
       m(
         'a',
-        'Hola Diego, sí, nos quedan dos unidades de 3 ambientes desde USD 265.000. Vi que ya habíamos hablado el año pasado, ¿pudiste avanzar con la venta del PH?',
+        'Hola Diego, sí, nos quedan dos unidades de 3 ambientes desde USD 265.000. ¡Qué bueno que ya publicaste el PH! Cuando tengas novedades de la venta, vemos un esquema de pago que acompañe esos plazos.',
         9 * D + 2 * H,
         { by: 'tomas', viaDraft: true },
       ),
@@ -304,7 +308,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     classification: 'nuevo',
     confidence: 0.76,
     tags: ['Busca 3 ambientes', 'Familia', 'Mascotas'],
-    timeline: { label: 'Antes de las clases de 2028', by: by(2028, 2) },
+    timeline: { label: 'Antes de marzo de 2028, por las clases', by: by(2028, 3) },
     developmentId: 'urquiza',
     typology: '3 ambientes',
     stage: 'conversacion',
@@ -312,14 +316,28 @@ export const INITIAL_CONTACTS: Contact[] = [
     assignee: 'tomas',
     unread: 0,
     hue: 280,
-    summary: 'Familia con dos chicos y un perro, busca 3 ambientes con patio o balcón terraza.',
+    summary:
+      'Familia de cuatro con un perro grande. Viven en un 2 ambientes que les quedó chico y necesitan estar mudados antes de que las hijas empiecen las clases, en marzo de 2028.',
     messages: [
-      m('c', 'Hola! tienen 3 amb con patio? somos 4 + un perro grande jaja', 4 * D + 5 * H),
-      m('a', 'Hola Camila! En Villa Urquiza tenemos dos 3 ambientes en planta baja con patio de 28 m² 🐶', 4 * D + 4 * H, { by: 'tomas', viaDraft: true }),
-      m('c', 'Ay me encanta. Y se aceptan mascotas en el reglamento? Necesitamos estar mudados antes de que empiecen las clases de 2028, por los chicos.', 4 * D + 3 * H),
+      m(
+        'c',
+        'Hola! Vi la publicidad del edificio de Villa Urquiza 😊 ¿Tienen 3 ambientes con patio? Somos 4 (mi marido, nuestras dos hijas y yo) + un perro grande jaja',
+        4 * D + 5 * H,
+      ),
+      m(
+        'a',
+        '¡Hola Camila! En Villa Urquiza tenemos dos 3 ambientes en planta baja con patio de 28 m² 🐶 ¿Para cuándo estarían pensando mudarse?',
+        4 * D + 4 * H,
+        { by: 'tomas', viaDraft: true },
+      ),
+      m(
+        'c',
+        'Ay me encanta. Hoy estamos en un 2 ambientes y ya no entramos 😅 La idea es estar mudados antes de que las chicas empiecen las clases, en marzo de 2028, para no cambiarlas de colegio a mitad de año. ¿Se aceptan mascotas en el reglamento?',
+        4 * D + 3 * H,
+      ),
       m('a', '¡Sí! El reglamento permite mascotas y hay un pet spot en la terraza.', 4 * D + 2 * H, { by: 'tomas' }),
     ],
-    history: [h('Hace 4 días', 'Primera consulta por Instagram', 'consulta')],
+    history: [h('Hace 4 días', 'Primera consulta por Instagram', 'consulta', 'Desde el anuncio de Villa Urquiza')],
   },
   {
     id: 'ezequiel',
@@ -449,7 +467,7 @@ export const INITIAL_CONTACTS: Contact[] = [
     hue: 300,
     summary: 'Visitó el showroom ayer con su papá. Pidió propuesta con plan de cuotas.',
     messages: [
-      m('c', 'Gracias por la atención de ayer! ¿Me podrían mandar la propuesta con las cuotas?', 20 * H),
+      m('c', 'Gracias por la atención de ayer! No tenemos apuro: la idea es ir pagando en cuotas mientras se construye. ¿Me podrían mandar la propuesta con las cuotas?', 20 * H),
       m('a', '¡Gracias a vos Agustina! Te la preparo hoy mismo.', 19 * H, { by: 'julieta' }),
     ],
     history: [
