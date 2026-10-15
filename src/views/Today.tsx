@@ -3,11 +3,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { AlarmClock, ArrowRight, ArrowUpRight, CalendarClock, FileText, Inbox, Megaphone, Moon, Radar, ShieldCheck } from 'lucide-react'
 import { isStale, needsReply, useStore, type TodayTab } from '../store'
 import type { CampaignDraft, Contact, PriceChange } from '../types'
-import { TEAM, devById } from '../data/config'
-import { CAMPAIGN_COLOR, campaignNameFor } from '../data/attraction'
+import { STAGES, TEAM, devById } from '../data/config'
+import { CAMPAIGN_COLOR, campaignNameFor, cpm } from '../data/attraction'
 import { radarOpportunities } from '../data/pricing'
 import { Avatar, ClassChip, SparkleIcon, StagePill, TeamAvatar } from '../components/ui'
-import { AnimatedNumber } from '../components/attraction-ui'
+import { AnimatedNumber, DevImage } from '../components/attraction-ui'
 import { ars, cn, daysIn, firstName, isOutOfHours, usd } from '../lib/utils'
 
 const card = 'rounded-[24px] border border-line bg-surface p-5 shadow-soft'
@@ -87,13 +87,23 @@ export function Today() {
   const byKind = (k: Approval['kind']) => approvals.filter((a) => a.kind === k).length
   const total = toReply.length + followUps.length + approvals.length
 
-  const counters: { id: Tab; label: string; value: number; icon: typeof Inbox; color: string; hint: string }[] = [
+  const counters: {
+    id: Tab
+    label: string
+    value: number
+    icon: typeof Inbox
+    color: string
+    hint: string
+    people: Contact[]
+    campaigns?: number
+  }[] = [
     {
       id: 'responder',
       label: 'Consultas por responder',
       value: toReply.length,
       icon: Inbox,
       color: '#C08A3E',
+      people: toReply,
       hint: toReply.length
         ? `La más antigua espera ${ago(waitingSince(toReply[0]))}${outOfHours ? ` · ${plural(outOfHours, 'llegó', 'llegaron')} fuera de horario` : ''}`
         : 'Todas las consultas tienen respuesta',
@@ -104,6 +114,7 @@ export function Today() {
       value: followUps.length,
       icon: AlarmClock,
       color: '#c0673f',
+      people: followUps,
       hint: followUps.length
         ? hot
           ? `${plural(hot, 'contacto', 'contactos')} con riesgo alto de enfriarse`
@@ -116,6 +127,8 @@ export function Today() {
       value: approvals.length,
       icon: ShieldCheck,
       color: '#5d6d45',
+      people: approvals.flatMap((a) => (a.kind === 'campana' ? [] : [a.contact])),
+      campaigns: byKind('campana'),
       hint: approvals.length
         ? [
             byKind('reunion') && plural(byKind('reunion'), 'reunión detectada', 'reuniones detectadas'),
@@ -130,10 +143,10 @@ export function Today() {
 
   return (
     <div className="scroll-soft h-full overflow-y-auto">
-      <div className="mx-auto max-w-[1320px] px-7 pt-6 pb-10">
+      <div className="px-7 pt-6 pb-10 2xl:px-10">
         <motion.div {...fade(0)}>
           <p className="text-[11px] font-semibold tracking-[0.12em] text-ink-3 uppercase">{longDate()}</p>
-          <h2 className="mt-1.5 font-serif text-[34px] leading-tight font-light text-ink">
+          <h2 className="mt-1.5 font-serif text-[34px] leading-tight font-light text-ink 2xl:text-[40px]">
             {greeting()}, {firstName(TEAM.candelaria.name)}
           </h2>
           <p className="mt-1 text-[13px] text-ink-2">
@@ -173,18 +186,22 @@ export function Today() {
                     {on ? 'Viendo' : 'Ver casos'} <ArrowRight size={12} className={cn('transition', on && 'rotate-90')} />
                   </span>
                 </div>
-                <p className="relative mt-4 font-serif text-[64px] leading-[0.9] font-light tracking-tight text-ink">
-                  <AnimatedNumber value={k.value} />
-                </p>
+                <div className="relative mt-4 flex items-end justify-between gap-4">
+                  <p className="font-serif text-[64px] leading-[0.9] font-light tracking-tight text-ink 2xl:text-[76px]">
+                    <AnimatedNumber value={k.value} />
+                  </p>
+                  <Faces people={k.people} campaigns={k.campaigns} />
+                </div>
                 <p className="relative mt-3 truncate text-[12px] text-ink-3">{k.hint}</p>
               </motion.button>
             )
           })}
         </div>
 
+        {/* En pantallas anchas: casos, agenda y negocio en tres columnas */}
         <div className="mt-4 grid grid-cols-12 gap-4">
           {/* Casos del contador elegido */}
-          <motion.div {...fade(4)} className={cn(card, 'col-span-12 flex flex-col xl:col-span-8')}>
+          <motion.div {...fade(4)} className={cn(card, 'col-span-12 flex flex-col xl:col-span-8 2xl:col-span-6')}>
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={tab}
@@ -200,9 +217,14 @@ export function Today() {
             </AnimatePresence>
           </motion.div>
 
-          <div className="col-span-12 space-y-4 xl:col-span-4">
+          <div className="col-span-12 space-y-4 xl:col-span-4 2xl:col-span-3">
             <UpcomingMeetings />
             <AssistantWork outOfHours={outOfHours} />
+          </div>
+
+          <div className="col-span-12 grid grid-cols-2 content-start gap-4 2xl:col-span-3 2xl:grid-cols-1">
+            <Pipeline />
+            <ActiveCampaigns />
           </div>
         </div>
       </div>
@@ -210,8 +232,37 @@ export function Today() {
   )
 }
 
+/** Caras de los casos de un contador, para leerlo de un vistazo */
+function Faces({ people, campaigns = 0 }: { people: Contact[]; campaigns?: number }) {
+  const shown = people.slice(0, 4)
+  const tiles = Math.min(campaigns, Math.max(0, 4 - shown.length))
+  const rest = people.length - shown.length + campaigns - tiles
+  if (!shown.length && !tiles) return null
+  return (
+    <div className="mb-1 flex shrink-0 items-center">
+      {shown.map((c, i) => (
+        <Avatar key={c.id} name={c.name} hue={c.hue} size={32} ring className={i ? '-ml-2.5' : ''} />
+      ))}
+      {Array.from({ length: tiles }, (_, i) => (
+        <span
+          key={'camp' + i}
+          className={cn('flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-surface', (shown.length > 0 || i > 0) && '-ml-2.5')}
+          style={{ background: `color-mix(in srgb, ${CAMPAIGN_COLOR} 16%, var(--surface))`, color: CAMPAIGN_COLOR }}
+        >
+          <Megaphone size={14} />
+        </span>
+      ))}
+      {rest > 0 && (
+        <span className="-ml-2.5 flex h-8 min-w-8 items-center justify-center rounded-full bg-surface-3 px-1.5 text-[11px] font-semibold text-ink-2 ring-2 ring-surface">
+          +{rest}
+        </span>
+      )}
+    </div>
+  )
+}
+
 /* ───────── Casos */
-const MAX = 6
+const MAX = 8
 
 function CasesHeader({ title, sub, link }: { title: string; sub: string; link?: { label: string; onClick: () => void } }) {
   return (
@@ -555,5 +606,119 @@ function WorkRow({ icon: Icon, label, value }: { icon: typeof Inbox; label: Reac
         <AnimatedNumber value={value} />
       </span>
     </div>
+  )
+}
+
+/* ───────── Negocio */
+function Pipeline() {
+  const contacts = useStore((s) => s.contacts)
+  const setView = useStore((s) => s.setView)
+  const rows = STAGES.map((s) => ({ s, n: contacts.filter((c) => c.stage === s.id).length }))
+  const live = rows.filter((r) => r.s.id !== 'descartada')
+  const total = live.reduce((a, r) => a + r.n, 0)
+
+  return (
+    <motion.div {...fade(7)} className={card}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-serif text-[18px] text-ink">Tu embudo hoy</p>
+          <p className="mt-0.5 text-[12px] text-ink-3">{plural(total, 'contacto activo', 'contactos activos')} en el tablero</p>
+        </div>
+        <button
+          onClick={() => setView('board')}
+          className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11.5px] font-medium text-accent transition hover:bg-accent-soft"
+        >
+          Ver tablero <ArrowUpRight size={12} />
+        </button>
+      </div>
+      <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-surface-3">
+        {live.map((r, i) =>
+          r.n ? (
+            <motion.span
+              key={r.s.id}
+              title={`${r.s.label}: ${r.n}`}
+              className="h-full border-r-2 border-surface last:border-r-0"
+              style={{ background: r.s.color }}
+              initial={{ width: 0 }}
+              animate={{ width: `${(r.n / Math.max(1, total)) * 100}%` }}
+              transition={{ duration: 0.9, delay: 0.3 + i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+            />
+          ) : null,
+        )}
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2">
+        {rows.map((r) => (
+          <button key={r.s.id} onClick={() => setView('board')} className="flex items-center gap-2 text-left text-[12px] text-ink-2 transition hover:text-ink">
+            <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: r.s.color }} />
+            <span className="truncate">{r.s.short}</span>
+            <span className="ml-auto font-serif text-[15px] text-ink">
+              <AnimatedNumber value={r.n} />
+            </span>
+          </button>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+function ActiveCampaigns() {
+  const campaigns = useStore((s) => s.campaigns)
+  const openCampaign = useStore((s) => s.openCampaign)
+  const active = useMemo(() => campaigns.filter((c) => c.status === 'activa'), [campaigns])
+  const open = () => useStore.setState({ view: 'attraction', attractionTab: 'campanas', metaUnseen: 0 })
+
+  return (
+    <motion.div {...fade(8)} className={card}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-serif text-[18px] text-ink">Campañas activas</p>
+          <p className="mt-0.5 text-[12px] text-ink-3">Lo que cuesta cada reunión programada</p>
+        </div>
+        <button
+          onClick={open}
+          className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11.5px] font-medium text-accent transition hover:bg-accent-soft"
+        >
+          Ver Atracción <ArrowUpRight size={12} />
+        </button>
+      </div>
+      {active.length ? (
+        <div className="mt-3 space-y-1">
+          {active.map((c, i) => {
+            const value = cpm(c)
+            const spent = Math.min(100, Math.round((c.spent / c.budget) * 100))
+            return (
+              <button
+                key={c.id}
+                onClick={() => openCampaign(c.id)}
+                className="group flex w-full items-center gap-3 rounded-2xl px-2 py-2 text-left transition hover:bg-surface-2/60"
+              >
+                <DevImage id={c.developmentId} className="h-10 w-10 shrink-0 rounded-xl" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-semibold text-ink">{c.name}</p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-3">
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: CAMPAIGN_COLOR }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${spent}%` }}
+                        transition={{ duration: 0.9, delay: 0.3 + i * 0.06 }}
+                      />
+                    </div>
+                    <span className="shrink-0 text-[10.5px] text-ink-3">{spent}% invertido</span>
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-serif text-[17px] leading-none whitespace-nowrap text-ink">{value ? ars(value) : '—'}</p>
+                  <p className="mt-1 text-[10.5px] text-ink-3">{value ? 'por reunión' : 'sin reuniones aún'}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="mt-3 rounded-2xl border border-dashed border-line p-4 text-center text-[12px] text-ink-3">No hay campañas activas.</p>
+      )}
+    </motion.div>
   )
 }
