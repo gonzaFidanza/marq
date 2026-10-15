@@ -4,8 +4,8 @@ import type { Campaign, CampaignDraft, Channel, Classification, Contact, Convers
 import { INITIAL_CONTACTS } from './data/mock'
 import { ATTRIBUTION, GEN_CYCLE, INITIAL_CAMPAIGNS, INITIAL_DRAFTS, adText, buildDraft, campaignNameFor, resegment } from './data/attraction'
 import { SIMULATIONS } from './data/simulations'
-import { CHANNELS, CLASSIFICATIONS, INITIAL_PRICES, devById, listPriceKey, priceKey, stageById, type PriceList } from './data/config'
-import { LISTING_PORTALS, PRICE_DEMOS, affectedBy, fillPrices, radarDraft, radarReply, roundPrice, tokenizePrices } from './data/pricing'
+import { CHANNELS, CLASSIFICATIONS, DEV_STAGES, INITIAL_PRICES, devById, listPriceKey, priceKey, stageById, type PriceList } from './data/config'
+import { LISTING_PORTALS, PRICE_DEMOS, affectedBy, fillPrices, radarDraft, radarReply, roundPrice, stageDraft, stageWhen, tokenizePrices, upcomingStages } from './data/pricing'
 import { celebrate, chime, firstName, usd } from './lib/utils'
 
 export type View = 'hoy' | 'inbox' | 'board' | 'attraction' | 'metrics'
@@ -59,6 +59,10 @@ interface State {
   pendingPrice: PendingPrice | null
   priceDemoIndex: number
   radarLog: RadarRetake[]
+  /** Desarrollo cuyo aviso de cambio de etapa se está revisando */
+  pendingStage: string | null
+  /** Avisos de cambio de etapa ya preparados, por desarrollo */
+  stageAlerts: Record<string, { at: number; count: number }>
 
   login: () => void
   setView: (v: View) => void
@@ -105,6 +109,11 @@ interface State {
   cancelPrice: () => void
   confirmPrice: (radarIds: string[]) => void
   simulatePriceChange: () => void
+
+  previewStage: (developmentId: string) => void
+  cancelStage: () => void
+  confirmStage: (contactIds: string[]) => void
+  simulateStageChange: () => void
 }
 
 let tid = 0
@@ -165,6 +174,8 @@ export const useStore = create<State>((set, get) => {
     pendingPrice: null,
     priceDemoIndex: 0,
     radarLog: [],
+    pendingStage: null,
+    stageAlerts: {},
 
     login: () => set({ loggedIn: true }),
     setView: (view) => set({ view, drawerId: null, campaignDrawerId: null, ...(view === 'attraction' ? { metaUnseen: 0 } : {}) }),
@@ -526,7 +537,15 @@ export const useStore = create<State>((set, get) => {
         prices: { ...s.prices, [key]: p.to },
         priceHistory: [change, ...s.priceHistory],
         priceFocus: key,
-        radarLog: [...radarIds.map((contactId) => ({ id: uid('rr'), contactId, changeId: change.id, at: change.at })), ...s.radarLog],
+        radarLog: [
+          ...radarIds.map((contactId) => ({
+            id: uid('rr'),
+            contactId,
+            at: change.at,
+            label: `Bajó ${p.typology} en ${devById(p.developmentId).neighborhood} · ${usd(from)} → ${usd(p.to)}`,
+          })),
+          ...s.radarLog,
+        ],
       }))
 
       radarIds.forEach((id) =>
@@ -582,6 +601,55 @@ export const useStore = create<State>((set, get) => {
         remindersOpen: false,
         pendingPrice: { developmentId: demo.developmentId, typology: demo.typology, to: roundPrice(from * (1 + demo.pct)) },
       })
+    },
+
+    /* ───────── Cambio de etapa */
+    previewStage: (pendingStage) => set({ pendingStage, drawerId: null, campaignDrawerId: null, remindersOpen: false }),
+    cancelStage: () => set({ pendingStage: null }),
+
+    confirmStage: (contactIds) => {
+      const id = get().pendingStage
+      set({ pendingStage: null })
+      const dev = id ? devById(id) : null
+      const ns = dev?.nextStage
+      if (!dev || !ns) return
+      const now = Date.now()
+      const when = `${dev.neighborhood} pasa a ${DEV_STAGES[ns.to].short.toLowerCase()} ${stageWhen(ns.at)}`
+      contactIds.forEach((cid) =>
+        patch(cid, (c) => ({
+          draft: stageDraft(c, dev, get().prices),
+          draftKind: 'retomar',
+          fresh: true,
+          history: [
+            { id: uid('h'), date: 'Ahora', title: 'Aviso de cambio de etapa', kind: 'sistema', detail: `${when} · +${Math.round(ns.increase * 100)}%` },
+            ...c.history,
+          ],
+        })),
+      )
+      set((s) => ({
+        stageAlerts: { ...s.stageAlerts, [dev.id]: { at: now, count: contactIds.length } },
+        radarLog: [
+          ...contactIds.map((contactId) => ({ id: uid('rr'), contactId, at: now, label: `${when} · +${Math.round(ns.increase * 100)}%` })),
+          ...s.radarLog,
+        ],
+      }))
+      if (contactIds.length)
+        setTimeout(() => set((s) => ({ contacts: s.contacts.map((c) => (contactIds.includes(c.id) ? { ...c, fresh: false } : c)) })), 6500)
+      get().toast(
+        {
+          title: contactIds.length === 1 ? '1 aviso de cambio de etapa' : `${contactIds.length} avisos de cambio de etapa`,
+          body: `${dev.name} pasa a ${DEV_STAGES[ns.to].short.toLowerCase()} ${stageWhen(ns.at)}. Los borradores están en la Bandeja: nada se envía sin tu aprobación.`,
+          tone: 'success',
+          action: contactIds.length ? { label: 'Revisar', contactId: contactIds[0] } : undefined,
+        },
+        7000,
+      )
+    },
+
+    simulateStageChange: () => {
+      if (get().pendingStage || get().pendingPrice) return
+      const next = upcomingStages()[0]
+      if (next) get().previewStage(next.id)
     },
   }
 })

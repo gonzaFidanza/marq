@@ -1,5 +1,5 @@
-import type { Campaign, CampaignDraft, Contact, FollowUp, PendingPrice, PriceChange } from '../types'
-import { PRICE_LIST, devById, listPriceKey, priceFor, priceKey, type PriceList } from './config'
+import type { Campaign, CampaignDraft, Contact, Development, FollowUp, PendingPrice, PriceChange } from '../types'
+import { DEVELOPMENTS, DEV_STAGES, PRICE_LIST, devById, listPriceKey, listTypology, priceFor, priceKey, type PriceList } from './config'
 import { daysIn, firstName, usd } from '../lib/utils'
 
 /* ───────── Precios dentro de los textos
@@ -172,3 +172,76 @@ export const PRICE_DEMOS = [
 ]
 
 export const roundPrice = (n: number) => Math.round(n / 1000) * 1000
+
+/* ───────── Cambio de etapa: avisar antes de que suban los valores */
+const MONTH = 30.44 * 86_400_000
+
+export type BuyerKind = 'inversor' | 'cuotas' | 'general'
+
+/** Cómo conviene hablarle: al inversor, la diferencia entre etapas; a quien paga en cuotas, cuánto cambia la cuota */
+export function buyerKind(c: Contact): BuyerKind {
+  const said = [...c.tags, c.timeline?.label ?? ''].map((x) => x.toLowerCase())
+  if (said.some((x) => x.includes('inversor') || x.includes('renta'))) return 'inversor'
+  if (said.some((x) => x.includes('primera vivienda') || x.includes('cuota'))) return 'cuotas'
+  return 'general'
+}
+
+export const BUYER_ANGLE: Record<BuyerKind, string> = {
+  inversor: 'le mostramos la diferencia entre etapas',
+  cuotas: 'le mostramos cuánto cambia su cuota',
+  general: 'le explicamos por qué sube',
+}
+
+/** Cuota mensual estimada: lo que queda después del anticipo, en cuotas hasta la entrega */
+export function monthlyFee(price: number, dev: Development, now = Date.now()) {
+  const months = Math.max(1, Math.round((dev.deliveryAt - now) / MONTH))
+  return Math.round((price * (1 - (dev.anticipo ?? 0.3))) / months / 10) * 10
+}
+
+export const priceAfterStage = (price: number, dev: Development) => roundPrice(price * (1 + (dev.nextStage?.increase ?? 0)))
+
+export const dayMonth = (t: number) => new Date(t).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
+
+/** Próximos cambios de etapa, del más cercano al más lejano */
+export const upcomingStages = (now = Date.now()) =>
+  DEVELOPMENTS.filter((d) => d.nextStage && d.nextStage.at > now).sort((a, b) => a.nextStage!.at - b.nextStage!.at)
+
+/** A quién avisarle: quien consultó por ese desarrollo y todavía no decidió */
+export function radarForStage(dev: Development, contacts: Contact[], isStale: (c: Contact) => boolean): RadarItem[] {
+  const items: RadarItem[] = []
+  for (const c of contacts) {
+    if (c.developmentId !== dev.id || c.analyzing || ['pendiente', 'reunion', 'reserva'].includes(c.stage)) continue
+    // Si el precio sube, al que no le alcanzaba le queda más lejos
+    if (c.stage === 'descartada' && c.discardReason === BUDGET) continue
+    const r = reasonFor(c, isStale)
+    // Acá el precio todavía no cambió: la propuesta sigue vigente
+    const why = r.kind === 'propuesta' ? 'Tiene una propuesta abierta' : r.text
+    items.push({ contact: c, reason: `${why} · ${BUYER_ANGLE[buyerKind(c)]}`, kind: r.kind, similar: false, checked: r.kind !== 'descartada' })
+  }
+  return items.sort((a, b) => kindRank(a.kind) - kindRank(b.kind) || a.contact.stageSince - b.contact.stageSince)
+}
+
+/** Aviso del cambio de etapa, distinto según cómo compra cada uno */
+export function stageDraft(c: Contact, dev: Development, prices: PriceList) {
+  const ns = dev.nextStage!
+  const name = firstName(c.name)
+  const typology = listTypology(dev.id, c.typology)
+  const price = priceFor(dev.id, typology, prices)
+  const step = `${stageWhen(ns.at)} ${dev.name} pasa de ${DEV_STAGES[dev.stage].short.toLowerCase()} a ${DEV_STAGES[ns.to].short.toLowerCase()}`
+  const pct = Math.round(ns.increase * 100)
+  const why = 'Es lo habitual en cada etapa: a medida que avanza la obra baja el riesgo y sube el valor de cada unidad.'
+  switch (buyerKind(c)) {
+    case 'inversor':
+      return `Hola ${name}, ¿cómo estás? Te aviso con tiempo: ${step} y los valores suben un ${pct}%. Hoy los ${plural(typology)} arrancan en ${priceToken(dev.id, typology)}; después del cambio, en ${usd(priceAfterStage(price, dev))}. Esa diferencia es la que se captura comprando en esta etapa. ¿Te armo los números de la inversión?`
+    case 'cuotas':
+      return `Hola ${name}, ¿cómo estás? Te quería avisar con tiempo: ${step} y los valores suben un ${pct}%. ${why} Si reservás antes, tu cuota estimada queda en ${usd(monthlyFee(price, dev))} por mes en lugar de ${usd(monthlyFee(priceAfterStage(price, dev), dev))} (${Math.round((dev.anticipo ?? 0.3) * 100)}% de anticipo y el resto en cuotas hasta la entrega). ¿Querés que te arme la simulación?`
+    default:
+      return `Hola ${name}, ¿cómo va? Te escribo para avisarte con tiempo: ${step} y los valores se actualizan un ${pct}%. ${why} Hoy los ${plural(typology)} arrancan en ${priceToken(dev.id, typology)}. ¿Querés que lo veamos antes del cambio?`
+  }
+}
+
+/** "el 5 de noviembre" si es pronto; "en marzo de 2027" si falta más */
+export function stageWhen(t: number, now = Date.now()) {
+  if (t - now <= 60 * 86_400_000) return `el ${dayMonth(t)}`
+  return `en ${new Date(t).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
+}

@@ -14,6 +14,7 @@ import { Attraction } from './views/attraction/Attraction'
 import { CampaignDrawer } from './views/attraction/Campaigns'
 import { DraftDiscardModal } from './views/attraction/Overlays'
 import { PriceImpactModal, PricesDrawer } from './views/Prices'
+import { StageModal } from './views/Stages'
 import { Beams } from './components/Beams'
 
 export default function App() {
@@ -25,8 +26,9 @@ export default function App() {
   const pendingDraftDiscard = useStore((s) => s.pendingDraftDiscard)
   const pricesOpen = useStore((s) => s.pricesOpen)
   const pendingPrice = useStore((s) => s.pendingPrice)
+  const pendingStage = useStore((s) => s.pendingStage)
 
-  // Presentation mode: N simula una consulta entrante, C genera una propuesta de campaña, P una baja de precio
+  // Presentation mode: N simula una consulta entrante, C genera una propuesta de campaña, P una baja de precio, E un cambio de etapa
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
@@ -37,6 +39,7 @@ export default function App() {
       if (e.key === 'n' || e.key === 'N') s.simulateIncoming()
       if (e.key === 'c' || e.key === 'C') s.generateCampaign()
       if (e.key === 'p' || e.key === 'P') s.simulatePriceChange()
+      if (e.key === 'e' || e.key === 'E') s.simulateStageChange()
       if (e.key === '1') s.setView('hoy')
       if (e.key === '2') s.setView('inbox')
       if (e.key === '3') s.setView('board')
@@ -45,6 +48,7 @@ export default function App() {
       if (e.key === 'Escape') {
         // Con el impacto de un precio abierto, Escape cierra solo ese paso
         if (s.pendingPrice) return s.cancelPrice()
+        if (s.pendingStage) return s.cancelStage()
         s.openDrawer(null)
         s.setRemindersOpen(false)
         s.openCampaign(null)
@@ -98,6 +102,7 @@ export default function App() {
       <AnimatePresence>
         {pendingPrice && <PriceImpactModal key={`${pendingPrice.developmentId}/${pendingPrice.typology}/${pendingPrice.to}`} p={pendingPrice} />}
       </AnimatePresence>
+      <AnimatePresence>{pendingStage && <StageModal key={pendingStage} devId={pendingStage} />}</AnimatePresence>
       <Beams />
       <Toasts />
     </>

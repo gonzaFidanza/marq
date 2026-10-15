@@ -411,16 +411,28 @@ function Affected({ icon, color, title, sub }: { icon: React.ReactNode; color?: 
   )
 }
 
-function Radar({ items, picked, toggle }: { items: RadarItem[]; picked: Set<string>; toggle: (id: string) => void }) {
+/** Lista del radar para elegir a quién retomar; la usan el cambio de precio y el de etapa */
+export function Radar({
+  items,
+  picked,
+  toggle,
+  title = 'Radar de oportunidades',
+  intro = 'Consultaron por esto y no compraron. Vos decidís a quién retomar: el asistente prepara un borrador para cada uno y',
+}: {
+  items: RadarItem[]
+  picked: Set<string>
+  toggle: (id: string) => void
+  title?: string
+  intro?: string
+}) {
   const firstSimilar = items.findIndex((r) => r.similar)
   return (
     <div className="mt-6">
       <p className="flex items-center gap-1.5 text-[12.5px] font-semibold">
-        <SparkleIcon size={14} /> <span className="ai-text">Radar de oportunidades</span>
+        <SparkleIcon size={14} /> <span className="ai-text">{title}</span>
       </p>
       <p className="mt-1 mb-3 text-[12px] leading-snug text-ink-2">
-        Consultaron por esto y no compraron. Vos decidís a quién retomar: el asistente prepara un borrador para cada uno y{' '}
-        <b className="font-semibold text-ink">nada se envía sin tu aprobación.</b>
+        {intro} <b className="font-semibold text-ink">nada se envía sin tu aprobación.</b>
       </p>
       {items.length ? (
         <div className="space-y-1.5">

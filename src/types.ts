@@ -187,7 +187,8 @@ export interface PriceChange {
 export interface RadarRetake {
   id: string
   contactId: string
-  changeId: string
+  /** Qué lo disparó, para mostrarlo en Señales: una baja de precio o un cambio de etapa */
+  label: string
   at: number
 }
 

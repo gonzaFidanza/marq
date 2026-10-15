@@ -1,11 +1,11 @@
 import { useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowRight, MessageSquareQuote, ShieldCheck, Tag, TrendingDown } from 'lucide-react'
+import { AlertTriangle, ArrowRight, BellRing, Check, MessageSquareQuote, ShieldCheck, Tag, TrendingDown } from 'lucide-react'
 import { isStale, useStore } from '../../store'
 import type { Contact } from '../../types'
 import { DEV_SIGNALS, PROFILES, PROFILE_SIGNALS, QUESTION_SIGNALS } from '../../data/attraction'
-import { devById, stageById } from '../../data/config'
-import { OPPORTUNITY_DROP, RADAR_KINDS, radarOpportunities, type RadarKind } from '../../data/pricing'
+import { DEV_STAGES, devById, stageById } from '../../data/config'
+import { OPPORTUNITY_DROP, RADAR_KINDS, radarForStage, radarOpportunities, stageWhen, upcomingStages, type RadarKind } from '../../data/pricing'
 import { Avatar, Kbd, SparkleIcon } from '../../components/ui'
 import { AnimatedNumber, DevImage, ProfileChip } from '../../components/attraction-ui'
 import { cn, usd } from '../../lib/utils'
@@ -203,17 +203,78 @@ export function Signals() {
 
         {/* Radar de oportunidades */}
         <motion.div {...fade(9)} id="sig-radar" className="mt-7 mb-3 flex items-end justify-between">
-          <Title title="Radar de oportunidades" sub="Contactos que vuelven a estar en juego si baja el precio de lo que consultaron" />
+          <Title title="Radar de oportunidades" sub="Contactos que vuelven a estar en juego cuando cambia un precio o una etapa" />
           <span className="flex items-center gap-1.5 text-[11.5px] text-ink-3">
             <Tag size={13} /> Medido con una baja de {Math.abs(OPPORTUNITY_DROP * 100)}% sobre la lista de precios vigente
           </span>
         </motion.div>
-        <div className="grid grid-cols-12 gap-4">
+        <StageChanges />
+        <div className="mt-4 grid grid-cols-12 gap-4">
           <RadarOpportunities />
           <RadarRetakes />
         </div>
       </div>
     </div>
+  )
+}
+
+/** Cambios de etapa que vienen: avisar antes de que suban los valores */
+function StageChanges() {
+  const contacts = useStore((s) => s.contacts)
+  const alerts = useStore((s) => s.stageAlerts)
+  const preview = useStore((s) => s.previewStage)
+  const devs = useMemo(() => upcomingStages(), [])
+
+  return (
+    <motion.div {...fade(10)} className={card}>
+      <div className="flex items-center justify-between gap-4">
+        <p className="flex items-center gap-1.5 text-[12.5px] font-semibold">
+          <SparkleIcon size={14} /> <span className="ai-text">Próximos cambios de etapa</span>
+        </p>
+        <span className="flex items-center gap-1.5 text-[11.5px] text-ink-3">
+          Avisar antes de que suban los valores · simular con <Kbd className="border-line! bg-surface-2! text-ink-2">E</Kbd>
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
+        {devs.map((d) => {
+          const ns = d.nextStage!
+          const days = Math.ceil((ns.at - Date.now()) / 86_400_000)
+          const soon = days <= 30
+          const n = radarForStage(d, contacts, isStale).filter((r) => r.checked).length
+          const sent = alerts[d.id]
+          return (
+            <div
+              key={d.id}
+              className={cn('flex items-center gap-3 rounded-2xl border p-3', soon ? 'border-[#c0673f]/30 bg-[#c0673f]/[0.05]' : 'border-line bg-surface-2/40')}
+            >
+              <DevImage id={d.id} className="h-11 w-11 shrink-0 rounded-xl" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold text-ink">{d.neighborhood}</p>
+                <p className="text-[11.5px] text-ink-3">
+                  {DEV_STAGES[d.stage].short} → {DEV_STAGES[ns.to].short} · +{Math.round(ns.increase * 100)}%
+                </p>
+                <p className={cn('mt-0.5 text-[11px] font-medium', soon ? 'text-[#b0603c]' : 'text-ink-2')}>
+                  {days <= 60 ? `En ${days} días` : `En ${Math.round(days / 30)} meses`} · {stageWhen(ns.at).replace(/^(el|en) /, '')}
+                </p>
+              </div>
+              {sent ? (
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent">
+                  <Check size={12} strokeWidth={2.6} /> {sent.count === 1 ? '1 aviso' : `${sent.count} avisos`}
+                </span>
+              ) : (
+                <button
+                  onClick={() => preview(d.id)}
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-[12px] font-medium text-ink shadow-soft transition hover:border-line-strong hover:bg-surface-2"
+                >
+                  <BellRing size={13} className="text-accent" /> Avisar
+                  {n > 0 && <span className="rounded-full bg-surface-3 px-1.5 text-[10.5px] text-ink-2">{n}</span>}
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </motion.div>
   )
 }
 
@@ -320,19 +381,17 @@ function retakeStatus(c: Contact, at: number): { step: number; label: string; co
 function RadarRetakes() {
   const log = useStore((s) => s.radarLog)
   const contacts = useStore((s) => s.contacts)
-  const history = useStore((s) => s.priceHistory)
   const select = useStore((s) => s.select)
   const rows = log.flatMap((r) => {
     const c = contacts.find((x) => x.id === r.contactId)
-    const ch = history.find((h) => h.id === r.changeId)
-    return c && ch ? [{ r, c, ch, st: retakeStatus(c, r.at) }] : []
+    return c ? [{ r, c, st: retakeStatus(c, r.at) }] : []
   })
   const replied = rows.filter((x) => x.st.step >= 2).length
   const meetings = rows.filter((x) => x.st.step >= 3).length
 
   return (
     <motion.div {...fade(11)} className={cn(card, 'col-span-12 flex flex-col xl:col-span-5')}>
-      <Title title="Retomados por el radar" sub="Qué pasó con cada contacto después del cambio de precio" />
+      <Title title="Retomados por el radar" sub="Qué pasó con cada contacto después del aviso" />
       <div className="mt-4 grid grid-cols-3 gap-2.5">
         {[
           { label: 'Retomados', value: rows.length },
@@ -349,7 +408,7 @@ function RadarRetakes() {
       </div>
       {rows.length ? (
         <div className="mt-4 space-y-1.5">
-          {rows.map(({ r, c, ch, st }) => (
+          {rows.map(({ r, c, st }) => (
             <button
               key={r.id}
               onClick={() => select(c.id)}
@@ -358,9 +417,7 @@ function RadarRetakes() {
               <Avatar name={c.name} hue={c.hue} size={34} channel={c.channel} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13px] font-semibold text-ink">{c.name}</p>
-                <p className="truncate text-[11px] text-ink-3">
-                  {devById(ch.developmentId).neighborhood} · {ch.typology} · {usd(ch.from)} → {usd(ch.to)}
-                </p>
+                <p className="truncate text-[11px] text-ink-3">{r.label}</p>
               </div>
               <span
                 className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap', st.className)}
