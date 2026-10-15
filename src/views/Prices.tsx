@@ -470,7 +470,7 @@ export function Radar({
                   <Avatar name={r.contact.name} hue={r.contact.hue} size={34} channel={r.contact.channel} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold text-ink">{r.contact.name}</p>
-                    <p className="truncate text-[11.5px] text-ink-3">
+                    <p className={cn('truncate text-[11.5px]', r.alternative ? 'text-[#b0603c]' : 'text-ink-3')} title={r.reason}>
                       {r.reason}
                       {r.contact.draft && ' · reemplaza su borrador pendiente'}
                     </p>

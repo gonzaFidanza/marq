@@ -4,7 +4,7 @@ import { BellRing, ChevronRight, Info } from 'lucide-react'
 import { isStale, useStore } from '../store'
 import type { DevStage } from '../types'
 import { DEV_STAGES, devById } from '../data/config'
-import { monthlyFee, priceAfterStage, radarForStage, stageWhen } from '../data/pricing'
+import { PLAN_CUOTAS, monthlyFee, priceAfterStage, radarForStage, stageWhen } from '../data/pricing'
 import { DevImage } from '../components/attraction-ui'
 import { cn, usd } from '../lib/utils'
 import { DeltaBadge, Radar } from './Prices'
@@ -19,7 +19,7 @@ export function StageModal({ devId }: { devId: string }) {
   const contacts = useStore((s) => s.contacts)
   const cancel = useStore((s) => s.cancelStage)
   const confirm = useStore((s) => s.confirmStage)
-  const radar = useMemo(() => radarForStage(dev, contacts, isStale), [dev, contacts])
+  const radar = useMemo(() => radarForStage(dev, contacts, prices, isStale), [dev, contacts, prices])
   const [picked, setPicked] = useState(() => new Set(radar.filter((r) => r.checked).map((r) => r.contact.id)))
   if (!ns) return null
   const chosen = radar.filter((r) => picked.has(r.contact.id)).map((r) => r.contact.id)
@@ -110,7 +110,7 @@ export function StageModal({ devId }: { devId: string }) {
             </div>
             {dev.anticipo && (
               <p className="mt-2 text-[11px] text-ink-3">
-                Cuota mensual estimada con {Math.round(dev.anticipo * 100)}% de anticipo y el resto en cuotas hasta la entrega ({dev.delivery.toLowerCase()}).
+                Cuota mensual estimada con {Math.round(dev.anticipo * 100)}% de anticipo y el resto en {PLAN_CUOTAS} cuotas fijas.
               </p>
             )}
           </div>

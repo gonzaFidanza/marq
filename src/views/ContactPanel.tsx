@@ -4,10 +4,11 @@ import { AlertTriangle, ArrowUpRight, CalendarClock, Megaphone, Check, ChevronDo
 import { useFillPrices, useStore } from '../store'
 import type { Classification, Contact, HistoryItem } from '../types'
 import { Avatar, ChannelPill, SparkleIcon, StagePill } from '../components/ui'
-import { CLASSIFICATIONS, devById, fitsTimeline, stageById } from '../data/config'
-import { cn, dayLabel, stageAgeLabel } from '../lib/utils'
+import { CLASSIFICATIONS, devById, fitsTimeline, priceFor, stageById } from '../data/config'
+import { cn, dayLabel, stageAgeLabel, usd } from '../lib/utils'
 import { MiniAd, OriginChip } from '../components/attraction-ui'
 import { ORIGINS, originOf } from '../data/attraction'
+import { alternativeFor } from '../data/pricing'
 import { ListPrice } from './Prices'
 
 const section = {
@@ -230,8 +231,12 @@ function OriginCard({ c }: { c: Contact }) {
 
 /** Si la entrega del desarrollo llega a tiempo para lo que necesita el contacto */
 function TimelineFit({ c }: { c: Contact }) {
+  const prices = useStore((s) => s.prices)
   const fits = fitsTimeline(devById(c.developmentId), c.timeline)
   if (fits === null || !c.timeline) return null
+  // Si llega tarde, lo que sí le serviría: misma tipología, con entrega a tiempo
+  const alt = fits ? null : alternativeFor(c, prices)
+  const altDev = alt ? devById(alt.developmentId) : null
   return (
     <div
       className={cn(
@@ -242,6 +247,13 @@ function TimelineFit({ c }: { c: Contact }) {
       {fits ? <Check size={12} className="mt-px shrink-0" /> : <AlertTriangle size={12} className="mt-px shrink-0" />}
       <span>
         {fits ? 'La entrega llega a tiempo para su plazo' : 'La entrega es después de su plazo'} ({c.timeline.label.toLowerCase()}).
+        {alt && altDev && (
+          <>
+            {' '}
+            Le sirve más <b className="font-semibold">{altDev.name}</b> · {alt.typology}, desde {usd(priceFor(alt.developmentId, alt.typology, prices))} (
+            {altDev.delivery.toLowerCase()}).
+          </>
+        )}
       </span>
     </div>
   )

@@ -5,7 +5,7 @@ import { INITIAL_CONTACTS } from './data/mock'
 import { ATTRIBUTION, GEN_CYCLE, INITIAL_CAMPAIGNS, INITIAL_DRAFTS, adText, buildDraft, campaignNameFor, resegment } from './data/attraction'
 import { SIMULATIONS } from './data/simulations'
 import { CHANNELS, CLASSIFICATIONS, DEV_STAGES, INITIAL_PRICES, devById, listPriceKey, priceKey, stageById, type PriceList } from './data/config'
-import { LISTING_PORTALS, PRICE_DEMOS, affectedBy, fillPrices, radarDraft, radarReply, roundPrice, stageDraft, stageWhen, tokenizePrices, upcomingStages } from './data/pricing'
+import { LISTING_PORTALS, PRICE_DEMOS, affectedBy, alternativeFor, arrivesLate, fillPrices, radarDraft, radarReply, roundPrice, stageDraft, stageWhen, timelineDraft, tokenizePrices, upcomingStages } from './data/pricing'
 import { celebrate, chime, firstName, usd } from './lib/utils'
 
 export type View = 'hoy' | 'inbox' | 'board' | 'attraction' | 'metrics'
@@ -552,7 +552,7 @@ export const useStore = create<State>((set, get) => {
         patch(id, (c) => {
           const reply = radarReply(c, change)
           return {
-            draft: radarDraft(c, change),
+            draft: radarDraft(c, change, get().prices),
             draftKind: 'retomar',
             fresh: true,
             ...(reply ? { followUp: reply } : {}),
@@ -616,15 +616,25 @@ export const useStore = create<State>((set, get) => {
       const now = Date.now()
       const when = `${dev.neighborhood} pasa a ${DEV_STAGES[ns.to].short.toLowerCase()} ${stageWhen(ns.at)}`
       contactIds.forEach((cid) =>
-        patch(cid, (c) => ({
-          draft: stageDraft(c, dev, get().prices),
-          draftKind: 'retomar',
-          fresh: true,
-          history: [
-            { id: uid('h'), date: 'Ahora', title: 'Aviso de cambio de etapa', kind: 'sistema', detail: `${when} · +${Math.round(ns.increase * 100)}%` },
-            ...c.history,
-          ],
-        })),
+        patch(cid, (c) => {
+          // Si no puede esperar esa entrega, en vez del aviso va una sugerencia que llegue a tiempo
+          const alt = arrivesLate(c, dev) ? alternativeFor(c, get().prices) : null
+          return {
+            draft: alt ? timelineDraft(c, alt) : stageDraft(c, dev, get().prices),
+            draftKind: 'retomar',
+            fresh: true,
+            history: [
+              {
+                id: uid('h'),
+                date: 'Ahora',
+                title: alt ? 'Sugerencia por plazo de entrega' : 'Aviso de cambio de etapa',
+                kind: 'sistema',
+                detail: `${when} · +${Math.round(ns.increase * 100)}%`,
+              },
+              ...c.history,
+            ],
+          }
+        }),
       )
       set((s) => ({
         stageAlerts: { ...s.stageAlerts, [dev.id]: { at: now, count: contactIds.length } },

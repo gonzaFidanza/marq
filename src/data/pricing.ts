@@ -1,5 +1,5 @@
 import type { Campaign, CampaignDraft, Contact, Development, FollowUp, PendingPrice, PriceChange } from '../types'
-import { DEVELOPMENTS, DEV_STAGES, PRICE_LIST, devById, listPriceKey, listTypology, priceFor, priceKey, type PriceList } from './config'
+import { DEVELOPMENTS, DEV_STAGES, PRICE_LIST, devById, fitsTimeline, listPriceKey, listTypology, priceFor, priceKey, type PriceList } from './config'
 import { daysIn, firstName, usd } from '../lib/utils'
 
 /* ───────── Precios dentro de los textos
@@ -59,6 +59,8 @@ export interface RadarItem {
   /** Consultó por la misma tipología en otro desarrollo */
   similar: boolean
   checked: boolean
+  /** La entrega llega tarde para su plazo: se le sugiere esto en su lugar */
+  alternative?: Alternative
 }
 
 const BUDGET = 'Presupuesto no alcanza'
@@ -67,6 +69,39 @@ const plural = (typology: string) => (typology === 'Monoambiente' ? 'monoambient
 
 const sameTypology = (contactTypology: string, typology: string) =>
   contactTypology === typology || contactTypology.startsWith(typology + ' ')
+
+/* ───────── Plazos: no ofrecerle una entrega que llega tarde a quien no puede esperar */
+export interface Alternative {
+  developmentId: string
+  typology: string
+}
+
+/** Lo más barato de la misma tipología en un desarrollo que se entrega antes del plazo del contacto */
+export function alternativeFor(c: Contact, prices: PriceList): Alternative | null {
+  const by = c.timeline?.by
+  if (!by) return null
+  const options = DEVELOPMENTS.filter((d) => d.id !== c.developmentId && d.deliveryAt <= by)
+    .flatMap((d) => d.typologies.filter((t) => sameTypology(c.typology, t.label)).map((t) => ({ developmentId: d.id, typology: t.label })))
+    .sort((a, b) => prices[priceKey(a.developmentId, a.typology)] - prices[priceKey(b.developmentId, b.typology)])
+  return options[0] ?? null
+}
+
+export const arrivesLate = (c: Contact, dev: Development) => fitsTimeline(dev, c.timeline) === false
+
+const deliveryWhen = (dev: Development) =>
+  dev.stage === 'terminado' ? 'ya está terminado' : `se entrega en ${new Date(dev.deliveryAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
+
+const lateReason = (c: Contact, alt: Alternative) => {
+  const d = devById(alt.developmentId)
+  return `Su plazo: ${c.timeline!.label.toLowerCase()} · le sugerimos ${d.neighborhood}, que ${deliveryWhen(d)}`
+}
+
+/** En vez del aviso, la sugerencia de algo que sí llega a tiempo */
+export function timelineDraft(c: Contact, alt: Alternative) {
+  const dev = devById(c.developmentId)
+  const other = devById(alt.developmentId)
+  return `Hola ${firstName(c.name)}, ¿cómo estás? Me quedé pensando en tu plazo (${c.timeline!.label.toLowerCase()}): ${dev.name} ${deliveryWhen(dev)} y no llegaría a tiempo. Por eso te quería sugerir los ${plural(alt.typology)} de ${other.name}, que ${deliveryWhen(other)}, desde ${priceToken(alt.developmentId, alt.typology)}. ¿Te paso la info y coordinamos una visita?`
+}
 
 function reasonFor(c: Contact, isStale: (c: Contact) => boolean): { text: string; kind: RadarKind } {
   if (c.stage === 'descartada')
@@ -96,10 +131,16 @@ export function radarFor(
       // Con reunión programada, el asesor se lo cuenta en la reunión
       if (c.stage === 'reunion') continue
       const r = reasonFor(c, isStale)
+      if (arrivesLate(c, devById(p.developmentId))) {
+        // No puede esperar esa entrega: si hay algo que llega a tiempo, se le sugiere eso
+        const alt = alternativeFor(c, prices)
+        if (alt) items.push({ contact: c, reason: lateReason(c, alt), kind: r.kind, similar: false, checked: true, alternative: alt })
+        continue
+      }
       items.push({ contact: c, reason: r.text, kind: r.kind, similar: false, checked: true })
       continue
     }
-    if (!['respondida', 'conversacion', 'descartada'].includes(c.stage)) continue
+    if (!['respondida', 'conversacion', 'descartada'].includes(c.stage) || arrivesLate(c, devById(p.developmentId))) continue
     const theirs = priceFor(c.developmentId, c.typology, prices)
     const budget = c.stage === 'descartada' && c.discardReason === BUDGET
     if (budget ? p.to >= theirs : Math.abs(p.to - theirs) / theirs > 0.15) continue
@@ -134,7 +175,11 @@ export function radarOpportunities(contacts: Contact[], prices: PriceList, isSta
 }
 
 /** Borrador para retomar el contacto con el precio nuevo. El precio queda marcado para que siga a la lista. */
-export function radarDraft(c: Contact, ch: PriceChange) {
+export function radarDraft(c: Contact, ch: PriceChange, prices: PriceList) {
+  if (c.developmentId === ch.developmentId && arrivesLate(c, devById(ch.developmentId))) {
+    const alt = alternativeFor(c, prices)
+    if (alt) return timelineDraft(c, alt)
+  }
   const name = firstName(c.name)
   const what = `los ${plural(ch.typology)} de ${devById(ch.developmentId).name}`
   const now = priceToken(ch.developmentId, ch.typology)
@@ -174,7 +219,8 @@ export const PRICE_DEMOS = [
 export const roundPrice = (n: number) => Math.round(n / 1000) * 1000
 
 /* ───────── Cambio de etapa: avisar antes de que suban los valores */
-const MONTH = 30.44 * 86_400_000
+/** Plan de pago estimado para pozo y obra: anticipo y el resto en cuotas fijas */
+export const PLAN_CUOTAS = 36
 
 export type BuyerKind = 'inversor' | 'cuotas' | 'general'
 
@@ -192,10 +238,9 @@ export const BUYER_ANGLE: Record<BuyerKind, string> = {
   general: 'le explicamos por qué sube',
 }
 
-/** Cuota mensual estimada: lo que queda después del anticipo, en cuotas hasta la entrega */
-export function monthlyFee(price: number, dev: Development, now = Date.now()) {
-  const months = Math.max(1, Math.round((dev.deliveryAt - now) / MONTH))
-  return Math.round((price * (1 - (dev.anticipo ?? 0.3))) / months / 10) * 10
+/** Cuota mensual estimada: lo que queda después del anticipo, en cuotas fijas */
+export function monthlyFee(price: number, dev: Development) {
+  return Math.round((price * (1 - (dev.anticipo ?? 0.3))) / PLAN_CUOTAS / 10) * 10
 }
 
 export const priceAfterStage = (price: number, dev: Development) => roundPrice(price * (1 + (dev.nextStage?.increase ?? 0)))
@@ -207,13 +252,19 @@ export const upcomingStages = (now = Date.now()) =>
   DEVELOPMENTS.filter((d) => d.nextStage && d.nextStage.at > now).sort((a, b) => a.nextStage!.at - b.nextStage!.at)
 
 /** A quién avisarle: quien consultó por ese desarrollo y todavía no decidió */
-export function radarForStage(dev: Development, contacts: Contact[], isStale: (c: Contact) => boolean): RadarItem[] {
+export function radarForStage(dev: Development, contacts: Contact[], prices: PriceList, isStale: (c: Contact) => boolean): RadarItem[] {
   const items: RadarItem[] = []
   for (const c of contacts) {
     if (c.developmentId !== dev.id || c.analyzing || ['pendiente', 'reunion', 'reserva'].includes(c.stage)) continue
     // Si el precio sube, al que no le alcanzaba le queda más lejos
     if (c.stage === 'descartada' && c.discardReason === BUDGET) continue
     const r = reasonFor(c, isStale)
+    if (arrivesLate(c, dev)) {
+      // No puede esperar esa entrega: no se le avisa del pozo, se le sugiere algo que llegue a tiempo
+      const alt = alternativeFor(c, prices)
+      if (alt) items.push({ contact: c, reason: lateReason(c, alt), kind: r.kind, similar: false, checked: true, alternative: alt })
+      continue
+    }
     // Acá el precio todavía no cambió: la propuesta sigue vigente
     const why = r.kind === 'propuesta' ? 'Tiene una propuesta abierta' : r.text
     items.push({ contact: c, reason: `${why} · ${BUYER_ANGLE[buyerKind(c)]}`, kind: r.kind, similar: false, checked: r.kind !== 'descartada' })
@@ -234,7 +285,7 @@ export function stageDraft(c: Contact, dev: Development, prices: PriceList) {
     case 'inversor':
       return `Hola ${name}, ¿cómo estás? Te aviso con tiempo: ${step} y los valores suben un ${pct}%. Hoy los ${plural(typology)} arrancan en ${priceToken(dev.id, typology)}; después del cambio, en ${usd(priceAfterStage(price, dev))}. Esa diferencia es la que se captura comprando en esta etapa. ¿Te armo los números de la inversión?`
     case 'cuotas':
-      return `Hola ${name}, ¿cómo estás? Te quería avisar con tiempo: ${step} y los valores suben un ${pct}%. ${why} Si reservás antes, tu cuota estimada queda en ${usd(monthlyFee(price, dev))} por mes en lugar de ${usd(monthlyFee(priceAfterStage(price, dev), dev))} (${Math.round((dev.anticipo ?? 0.3) * 100)}% de anticipo y el resto en cuotas hasta la entrega). ¿Querés que te arme la simulación?`
+      return `Hola ${name}, ¿cómo estás? Te quería avisar con tiempo: ${step} y los valores suben un ${pct}%. ${why} Si reservás antes, tu cuota estimada queda en ${usd(monthlyFee(price, dev))} por mes en lugar de ${usd(monthlyFee(priceAfterStage(price, dev), dev))} (${Math.round((dev.anticipo ?? 0.3) * 100)}% de anticipo y el resto en ${PLAN_CUOTAS} cuotas). ¿Querés que te arme la simulación?`
     default:
       return `Hola ${name}, ¿cómo va? Te escribo para avisarte con tiempo: ${step} y los valores se actualizan un ${pct}%. ${why} Hoy los ${plural(typology)} arrancan en ${priceToken(dev.id, typology)}. ¿Querés que lo veamos antes del cambio?`
   }

@@ -221,6 +221,7 @@ export function Signals() {
 /** Cambios de etapa que vienen: avisar antes de que suban los valores */
 function StageChanges() {
   const contacts = useStore((s) => s.contacts)
+  const prices = useStore((s) => s.prices)
   const alerts = useStore((s) => s.stageAlerts)
   const preview = useStore((s) => s.previewStage)
   const devs = useMemo(() => upcomingStages(), [])
@@ -240,7 +241,7 @@ function StageChanges() {
           const ns = d.nextStage!
           const days = Math.ceil((ns.at - Date.now()) / 86_400_000)
           const soon = days <= 30
-          const n = radarForStage(d, contacts, isStale).filter((r) => r.checked).length
+          const n = radarForStage(d, contacts, prices, isStale).filter((r) => r.checked).length
           const sent = alerts[d.id]
           return (
             <div
