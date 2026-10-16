@@ -176,8 +176,12 @@ export interface Development {
   deliveryAt: number
   /** Próximo cambio de etapa y cuánto suben los valores */
   nextStage?: { to: DevStage; at: number; increase: number }
-  /** Anticipo para comprar en pozo u obra; el resto en cuotas hasta la entrega */
-  anticipo?: number
+  /** Edificio de departamentos o loteo: cambia cómo se nombra la unidad */
+  kind: 'edificio' | 'loteo' | 'casas'
+  /** Entrega inicial, cuotas y descuento por pago contado, si lo hay */
+  financing?: { entrega: number; cuotas: number; contado?: number }
+  /** Qué parte de la foto mostrar cuando se recorta (CSS object-position) */
+  imagePos?: string
 }
 
 export type DevStage = 'pozo' | 'obra' | 'terminado'

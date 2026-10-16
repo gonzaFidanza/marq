@@ -65,7 +65,17 @@ export interface RadarItem {
 
 const BUDGET = 'Presupuesto no alcanza'
 
-const plural = (typology: string) => (typology === 'Monoambiente' ? 'monoambientes' : typology)
+/** "Lote 400 m²" → "lotes de 400 m²"; "3 ambientes" queda igual */
+const plural = (typology: string) => {
+  if (typology === 'Macrolote') return 'macrolotes'
+  if (typology.startsWith('Lote con')) return typology.replace('Lote', 'lotes')
+  if (typology.startsWith('Lote ')) return typology.replace('Lote ', 'lotes de ')
+  if (typology.startsWith('Dúplex ')) return typology.replace('Dúplex ', 'dúplex de ')
+  if (/^(Base|Media|Full)/.test(typology)) return `modelos ${typology}`
+  return typology
+}
+
+const unitOf = (dev: Development) => (dev.kind === 'loteo' ? 'lote' : dev.kind === 'casas' ? 'casa' : 'unidad')
 
 const sameTypology = (contactTypology: string, typology: string) =>
   contactTypology === typology || contactTypology.startsWith(typology + ' ')
@@ -88,8 +98,11 @@ export function alternativeFor(c: Contact, prices: PriceList): Alternative | nul
 
 export const arrivesLate = (c: Contact, dev: Development) => fitsTimeline(dev, c.timeline) === false
 
-const deliveryWhen = (dev: Development) =>
-  dev.stage === 'terminado' ? 'ya está terminado' : `se entrega en ${new Date(dev.deliveryAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
+const deliveryWhen = (dev: Development) => {
+  if (dev.stage === 'terminado') return dev.kind === 'loteo' ? 'ya está listo para escriturar' : 'ya está terminado'
+  const when = new Date(dev.deliveryAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+  return dev.kind === 'loteo' ? `entrega los lotes en ${when}` : `se entrega en ${when}`
+}
 
 const lateReason = (c: Contact, alt: Alternative) => {
   const d = devById(alt.developmentId)
@@ -109,7 +122,7 @@ function reasonFor(c: Contact, isStale: (c: Contact) => boolean): { text: string
       ? { text: 'Descartada: el presupuesto no le alcanzaba', kind: 'presupuesto' }
       : { text: `Descartada · ${c.discardReason ?? 'sin motivo'}`, kind: 'descartada' }
   if (c.stage === 'propuesta') return { text: 'Tiene una propuesta con el precio anterior', kind: 'propuesta' }
-  if (c.stage === 'realizada') return { text: 'Ya visitó la unidad y está decidiendo', kind: 'visita' }
+  if (c.stage === 'realizada') return { text: 'Ya visitó y está decidiendo', kind: 'visita' }
   if (isStale(c)) return { text: `Sin novedades hace ${daysIn(c.stageSince)} días`, kind: 'sin_novedades' }
   return { text: 'Está conversando por esta tipología', kind: 'conversando' }
 }
@@ -202,9 +215,9 @@ export function radarDraft(c: Contact, ch: PriceChange, prices: PriceList) {
 /** Respuestas guionadas para la demo cuando el radar retoma a alguien */
 const RADAR_REPLIES: Record<string, FollowUp> = {
   daniela: {
-    text: '¡Qué buena noticia! Con ese valor el crédito nos alcanza 🙌 ¿Podemos ir a ver la unidad el sábado a la mañana?',
+    text: '¡Qué buena noticia! Con ese valor el crédito nos alcanza 🙌 ¿Podemos ir a ver la unidad el viernes a la mañana?',
     delay: 4600,
-    meeting: { label: 'Sábado 10:30', detail: 'Unidad terminada · MARQ Belgrano R' },
+    meeting: { label: 'Viernes 10:30', detail: 'Visita a Torre Natalini' },
   },
 }
 
@@ -212,15 +225,15 @@ export const radarReply = (c: Contact, ch: PriceChange) => (c.developmentId === 
 
 /* ───────── Atajo P: cambios de precio que se van simulando en la presentación */
 export const PRICE_DEMOS = [
-  { developmentId: 'belgrano', typology: '3 ambientes', pct: -0.06 },
-  { developmentId: 'colegiales', typology: '2 ambientes', pct: -0.05 },
+  { developmentId: 'natalini', typology: '3 ambientes', pct: -0.06 },
+  { developmentId: 'arboledas', typology: 'Lote 400 m²', pct: -0.05 },
 ]
 
 export const roundPrice = (n: number) => Math.round(n / 1000) * 1000
 
 /* ───────── Cambio de etapa: avisar antes de que suban los valores */
-/** Plan de pago estimado para pozo y obra: anticipo y el resto en cuotas fijas */
-export const PLAN_CUOTAS = 36
+/** Plan de pago estimado: entrega inicial y el resto en cuotas fijas (si el desarrollo no lo define, 30% y 36 cuotas) */
+export const planOf = (dev: Development) => ({ entrega: dev.financing?.entrega ?? 0.3, cuotas: dev.financing?.cuotas ?? 36 })
 
 export type BuyerKind = 'inversor' | 'cuotas' | 'general'
 
@@ -238,9 +251,10 @@ export const BUYER_ANGLE: Record<BuyerKind, string> = {
   general: 'le explicamos por qué sube',
 }
 
-/** Cuota mensual estimada: lo que queda después del anticipo, en cuotas fijas */
+/** Cuota mensual estimada: lo que queda después de la entrega, en cuotas fijas */
 export function monthlyFee(price: number, dev: Development) {
-  return Math.round((price * (1 - (dev.anticipo ?? 0.3))) / PLAN_CUOTAS / 10) * 10
+  const plan = planOf(dev)
+  return Math.round((price * (1 - plan.entrega)) / plan.cuotas / 10) * 10
 }
 
 export const priceAfterStage = (price: number, dev: Development) => roundPrice(price * (1 + (dev.nextStage?.increase ?? 0)))
@@ -280,12 +294,13 @@ export function stageDraft(c: Contact, dev: Development, prices: PriceList) {
   const price = priceFor(dev.id, typology, prices)
   const step = `${stageWhen(ns.at)} ${dev.name} pasa de ${DEV_STAGES[dev.stage].short.toLowerCase()} a ${DEV_STAGES[ns.to].short.toLowerCase()}`
   const pct = Math.round(ns.increase * 100)
-  const why = 'Es lo habitual en cada etapa: a medida que avanza la obra baja el riesgo y sube el valor de cada unidad.'
+  const plan = planOf(dev)
+  const why = `Es lo habitual en cada etapa: a medida que avanza el proyecto baja el riesgo y sube el valor de cada ${unitOf(dev)}.`
   switch (buyerKind(c)) {
     case 'inversor':
       return `Hola ${name}, ¿cómo estás? Te aviso con tiempo: ${step} y los valores suben un ${pct}%. Hoy los ${plural(typology)} arrancan en ${priceToken(dev.id, typology)}; después del cambio, en ${usd(priceAfterStage(price, dev))}. Esa diferencia es la que se captura comprando en esta etapa. ¿Te armo los números de la inversión?`
     case 'cuotas':
-      return `Hola ${name}, ¿cómo estás? Te quería avisar con tiempo: ${step} y los valores suben un ${pct}%. ${why} Si reservás antes, tu cuota estimada queda en ${usd(monthlyFee(price, dev))} por mes en lugar de ${usd(monthlyFee(priceAfterStage(price, dev), dev))} (${Math.round((dev.anticipo ?? 0.3) * 100)}% de anticipo y el resto en ${PLAN_CUOTAS} cuotas). ¿Querés que te arme la simulación?`
+      return `Hola ${name}, ¿cómo estás? Te quería avisar con tiempo: ${step} y los valores suben un ${pct}%. ${why} Si reservás antes, tu cuota estimada queda en ${usd(monthlyFee(price, dev))} por mes en lugar de ${usd(monthlyFee(priceAfterStage(price, dev), dev))} (${Math.round(plan.entrega * 100)}% de entrega y el resto en ${plan.cuotas} cuotas). ¿Querés que te arme la simulación?`
     default:
       return `Hola ${name}, ¿cómo va? Te escribo para avisarte con tiempo: ${step} y los valores se actualizan un ${pct}%. ${why} Hoy los ${plural(typology)} arrancan en ${priceToken(dev.id, typology)}. ¿Querés que lo veamos antes del cambio?`
   }

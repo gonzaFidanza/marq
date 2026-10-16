@@ -49,10 +49,10 @@ export function Login() {
             Registra, clasifica, redacta y recuerda. Las conversaciones las seguís teniendo vos.
           </p>
           <div className="mt-10 flex gap-8 text-[12px] opacity-70">
-            <span>MARQ Colegiales</span>
-            <span>MARQ Villa Urquiza</span>
-            <span>MARQ Belgrano R</span>
-            <span>MARQ Núñez</span>
+            <span>Torre Natalini</span>
+            <span>Gran Arboledas</span>
+            <span>Brisas del Norte</span>
+            <span>Pueblo Mío</span>
           </div>
         </motion.div>
       </div>

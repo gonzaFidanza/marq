@@ -30,7 +30,7 @@ export function CardDrawer({ id }: { id: string }) {
         className="fixed top-3 right-3 bottom-3 z-[61] flex w-[460px] flex-col overflow-hidden rounded-[28px] border border-line bg-[var(--glass)] shadow-lift backdrop-blur-2xl"
       >
         <div className="relative h-[120px] shrink-0" style={{ background: dev.gradient }}>
-          <img src={dev.image} alt="" className="h-full w-full object-cover" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
+          <img src={dev.image} alt="" style={{ objectPosition: dev.imagePos }} className="h-full w-full object-cover" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] via-black/10 to-black/20" />
           <button onClick={close} className="absolute top-3.5 right-3.5 rounded-full bg-black/30 p-1.5 text-white backdrop-blur transition hover:bg-black/50">
             <X size={16} />

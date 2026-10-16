@@ -4,7 +4,7 @@ import { BellRing, ChevronRight, Info } from 'lucide-react'
 import { isStale, useStore } from '../store'
 import type { DevStage } from '../types'
 import { DEV_STAGES, devById } from '../data/config'
-import { PLAN_CUOTAS, monthlyFee, priceAfterStage, radarForStage, stageWhen } from '../data/pricing'
+import { monthlyFee, priceAfterStage, radarForStage, stageWhen } from '../data/pricing'
 import { DevImage } from '../components/attraction-ui'
 import { cn, usd } from '../lib/utils'
 import { DeltaBadge, Radar } from './Prices'
@@ -94,12 +94,12 @@ export function StageModal({ devId }: { devId: string }) {
                 const after = priceAfterStage(price, dev)
                 return (
                   <div key={t.label} className="flex items-center gap-3 px-3.5 py-2">
-                    <span className="w-[92px] shrink-0 text-[12.5px] text-ink-2">{t.label}</span>
+                    <span className="w-[112px] shrink-0 text-[12.5px] text-ink-2">{t.label}</span>
                     <span className="text-[12.5px] whitespace-nowrap text-ink">
                       {usd(price)} <span className="text-ink-3">→</span> <b className="font-semibold">{usd(after)}</b>
                     </span>
                     <DeltaBadge from={price} to={after} />
-                    {dev.anticipo && (
+                    {dev.financing && (
                       <span className="ml-auto text-[11px] whitespace-nowrap text-ink-3">
                         cuota {usd(monthlyFee(price, dev))} → {monthlyFee(after, dev).toLocaleString('es-AR')}/mes
                       </span>
@@ -108,9 +108,9 @@ export function StageModal({ devId }: { devId: string }) {
                 )
               })}
             </div>
-            {dev.anticipo && (
+            {dev.financing && (
               <p className="mt-2 text-[11px] text-ink-3">
-                Cuota mensual estimada con {Math.round(dev.anticipo * 100)}% de anticipo y el resto en {PLAN_CUOTAS} cuotas fijas.
+                Cuota mensual estimada con {Math.round(dev.financing.entrega * 100)}% de entrega y el resto en {dev.financing.cuotas} cuotas fijas.
               </p>
             )}
           </div>
@@ -120,7 +120,7 @@ export function StageModal({ devId }: { devId: string }) {
           <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-line bg-surface-2/50 p-3.5 text-[12px] leading-snug text-ink-2">
             <Info size={14} className="mt-px shrink-0 text-ink-3" />
             <span>
-              A medida que avanza la obra baja el riesgo y sube el valor. Avisar antes le da a quien está dudando una razón concreta para decidir, y le explica por
+              A medida que avanza el proyecto baja el riesgo y sube el valor. Avisar antes le da a quien está dudando una razón concreta para decidir, y le explica por
               qué cambia el precio.
             </span>
           </div>

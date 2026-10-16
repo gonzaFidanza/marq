@@ -60,7 +60,7 @@ export const RECOGNITION = ['4 ago', '11 ago', '18 ago', '25 ago', '1 sep', '8 s
 
 /** Cómo dicen que llegaron a conocer a MARQ (% de las consultas que lo mencionan) */
 export const HOW_THEY_KNEW = [
-  { label: 'Vieron el cartel de la obra', pct: 31 },
+  { label: 'Vieron la torre o el cartel del loteo', pct: 31 },
   { label: 'Instagram y Facebook', pct: 27 },
   { label: 'Una recomendación', pct: 22 },
   { label: 'Portales inmobiliarios', pct: 12 },
@@ -69,12 +69,12 @@ export const HOW_THEY_KNEW = [
 
 /** Frases de ejemplo de conversaciones donde aparece MARQ por nombre o preguntan quién desarrolla */
 export const BRAND_PHRASES: { channel: Channel; text: string }[] = [
-  { channel: 'instagram', text: 'Vi el edificio de Colegiales, ¿quién lo desarrolla?' },
+  { channel: 'instagram', text: 'Vi la torre de la calle Formosa, ¿quién la desarrolla?' },
   { channel: 'whatsapp', text: 'Mi cuñado compró con MARQ y me lo recomendó' },
-  { channel: 'portal', text: '¿MARQ es la que hizo el de Belgrano R?' },
+  { channel: 'portal', text: '¿MARQ es la que hizo Torre Natalini?' },
 ]
 
-/** Consultas que preguntan quién está detrás del edificio */
+/** Consultas que preguntan quién está detrás del proyecto */
 export const BRAND_ASK_WHO = 46
 
 export function originOf(c: Pick<Contact, 'campaignId' | 'origin' | 'channel' | 'classification' | 'tags'>): Origin {
@@ -88,15 +88,14 @@ export function originOf(c: Pick<Contact, 'campaignId' | 'origin' | 'channel' | 
 
 /** Atribución de los contactos existentes del tablero */
 export const ATTRIBUTION: Record<string, Partial<Pick<Contact, 'campaignId' | 'origin'>>> = {
-  lucia: { campaignId: 'c-col-1v' },
-  valentina: { campaignId: 'c-col-1v' },
-  paula: { campaignId: 'c-col-1v' },
+  lucia: { campaignId: 'c-nat-1v' },
+  paula: { campaignId: 'c-nat-1v' },
+  valentina: { campaignId: 'c-arb-1l' },
   agustina: { origin: 'portal' },
-  camila: { campaignId: 'c-urq-amp' },
-  ezequiel: { campaignId: 'c-urq-amp' },
-  martin: { campaignId: 'c-nun-inv' },
-  ignacio: { campaignId: 'c-nun-inv' },
-  rocio: { campaignId: 'c-nun-inv' },
+  camila: { campaignId: 'c-pm-amp' },
+  ezequiel: { campaignId: 'c-bdn-inv' },
+  ignacio: { campaignId: 'c-bdn-inv' },
+  rocio: { campaignId: 'c-bdn-inv' },
   carolina: { origin: 'recomendacion' },
   florencia: { origin: 'organico' },
   joaquin: { origin: 'organico' },
@@ -116,9 +115,9 @@ const conv = (name: string, event: Conversion['event'], ago: number, contactId?:
 
 export const INITIAL_CAMPAIGNS: Campaign[] = [
   {
-    id: 'c-col-1v',
-    name: 'Colegiales 1ª vivienda',
-    developmentId: 'colegiales',
+    id: 'c-nat-1v',
+    name: 'Torre Natalini 1ª vivienda',
+    developmentId: 'natalini',
     typology: '2 ambientes',
     profile: 'primera',
     status: 'activa',
@@ -130,7 +129,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 22,
     meetingsDone: 15,
     reservations: 3,
-    adText: `Tu primer 2 ambientes en Colegiales, con crédito hipotecario. Desde ${priceToken('colegiales', '2 ambientes')}.`,
+    adText: `Tu primer 2 ambientes en Torre Natalini, con crédito hipotecario. Desde ${priceToken('natalini', '2 ambientes')}.`,
     conversions: [
       conv('Federico A.', 'Reunión realizada', 5 * H),
       conv('Sabrina L.', 'Reunión programada', 1 * D + 2 * H),
@@ -140,10 +139,10 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     ],
   },
   {
-    id: 'c-urq-amp',
-    name: 'Villa Urquiza lanzamiento',
-    developmentId: 'urquiza',
-    typology: '2 ambientes',
+    id: 'c-pm-amp',
+    name: 'Pueblo Mío lanzamiento',
+    developmentId: 'pueblomio',
+    typology: 'Lote 400 m²',
     profile: 'amplio',
     status: 'activa',
     startedAt: NOW - 24 * D,
@@ -154,17 +153,17 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 9,
     meetingsDone: 6,
     reservations: 0,
-    adText: `Nuevo lanzamiento en Villa Urquiza. 2 y 3 ambientes desde ${priceToken('urquiza', '2 ambientes')}. ¡Consultá!`,
+    adText: `Pueblo Mío: barrio privado con laguna a 10 minutos de Resistencia. Lotes desde ${priceToken('pueblomio', 'Lote 400 m²')}. ¡Consultá!`,
     conversions: [
       conv('Marcos T.', 'Reunión programada', 2 * D + 3 * H),
       conv('Elena G.', 'Reunión realizada', 6 * D),
     ],
   },
   {
-    id: 'c-nun-inv',
-    name: 'Núñez inversores',
-    developmentId: 'nunez',
-    typology: 'Monoambiente',
+    id: 'c-bdn-inv',
+    name: 'Brisas del Norte inversores',
+    developmentId: 'brisas',
+    typology: 'Lote con costa',
     profile: 'inversor',
     status: 'activa',
     startedAt: NOW - 16 * D,
@@ -175,7 +174,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 12,
     meetingsDone: 9,
     reservations: 2,
-    adText: `Monoambientes en Núñez a 6 cuadras de Ciudad Universitaria. Desde ${priceToken('nunez', 'Monoambiente')}.`,
+    adText: `Lotes con costa a la laguna en Brisas del Norte: solo 7 en todo el barrio. Desde ${priceToken('brisas', 'Lote con costa')}.`,
     conversions: [
       conv('Rocío Fernández', 'Reserva', 5 * D, 'rocio'),
       conv('Gastón P.', 'Reunión programada', 1 * D + 5 * H),
@@ -183,9 +182,9 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     ],
   },
   {
-    id: 'c-bel-ult',
-    name: 'Belgrano R últimas unidades',
-    developmentId: 'belgrano',
+    id: 'c-nat-ult',
+    name: 'Torre Natalini últimas unidades',
+    developmentId: 'natalini',
     typology: '3 ambientes',
     profile: 'conocido',
     status: 'pausada',
@@ -197,14 +196,14 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 5,
     meetingsDone: 4,
     reservations: 1,
-    adText: `Últimos 3 ambientes en Belgrano R, listos para mudarse. Desde ${priceToken('belgrano', '3 ambientes')}.`,
+    adText: `Últimas unidades en Torre Natalini: 2, 3 y 4 ambientes, listos para mudarse. 3 ambientes desde ${priceToken('natalini', '3 ambientes')}.`,
     conversions: [conv('Horacio V.', 'Reserva', 14 * D), conv('Lía B.', 'Reunión realizada', 18 * D)],
   },
   {
     id: 'c-marq-inst',
     name: 'MARQ, quién está detrás',
     objective: 'marca',
-    developmentId: 'belgrano',
+    developmentId: 'natalini',
     typology: '3 ambientes',
     profile: 'amplio',
     status: 'activa',
@@ -218,14 +217,14 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 0,
     meetingsDone: 0,
     reservations: 0,
-    adText: 'Detrás de Belgrano R hay un nombre: MARQ. Desarrollamos en Colegiales, Villa Urquiza, Belgrano R y Núñez. Conocé MARQ.',
+    adText: 'Detrás de Torre Natalini hay un nombre: MARQ. +15 años desarrollando en la región. Torre Natalini, Gran Arboledas, Brisas del Norte y Pueblo Mío. Conocé MARQ.',
     conversions: [],
   },
   {
-    id: 'c-col-inv',
-    name: 'Colegiales invierno',
-    developmentId: 'colegiales',
-    typology: '2 ambientes',
+    id: 'c-arb-1l',
+    name: 'Gran Arboledas tu primer lote',
+    developmentId: 'arboledas',
+    typology: 'Lote 300 m²',
     profile: 'primera',
     status: 'finalizada',
     startedAt: NOW - 95 * D,
@@ -236,7 +235,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 11,
     meetingsDone: 8,
     reservations: 2,
-    adText: `2 ambientes en Colegiales con cuotas en pesos durante la obra. Desde ${usd(priceFor('colegiales', '2 ambientes'))}.`,
+    adText: `Tu lote en Gran Arboledas, con calles, luz y agua. 50% de entrega y 12 cuotas. Desde ${usd(priceFor('arboledas', 'Lote 300 m²'))}.`,
     conversions: [conv('Pilar S.', 'Reserva', 70 * D), conv('Matías O.', 'Reunión realizada', 78 * D)],
   },
 ]
@@ -264,12 +263,13 @@ export function dailySeries(c: Campaign) {
 
 /* ───────── Señales: lo que el agente lee de la Bandeja y el Tablero */
 export const DEV_SIGNALS = [
-  { developmentId: 'colegiales', typology: '2 ambientes', inquiries: 52, meetings: 19 },
-  { developmentId: 'nunez', typology: 'Monoambiente', inquiries: 30, meetings: 10 },
-  { developmentId: 'colegiales', typology: 'Monoambiente', inquiries: 34, meetings: 7 },
-  { developmentId: 'belgrano', typology: '3 ambientes', inquiries: 16, meetings: 6 },
-  { developmentId: 'urquiza', typology: '3 ambientes', inquiries: 16, meetings: 4 },
-  { developmentId: 'urquiza', typology: '2 ambientes', inquiries: 38, meetings: 3 },
+  { developmentId: 'natalini', typology: '2 ambientes', inquiries: 52, meetings: 19 },
+  { developmentId: 'brisas', typology: 'Lote con costa', inquiries: 30, meetings: 10 },
+  { developmentId: 'arboledas', typology: 'Lote 300 m²', inquiries: 34, meetings: 7 },
+  { developmentId: 'natalini', typology: '3 ambientes', inquiries: 16, meetings: 6 },
+  { developmentId: 'casasbdn', typology: 'Media 3 amb.', inquiries: 28, meetings: 9 },
+  { developmentId: 'pueblomio', typology: 'Lote 600 m²', inquiries: 16, meetings: 4 },
+  { developmentId: 'pueblomio', typology: 'Lote 400 m²', inquiries: 38, meetings: 3 },
 ]
 
 export const PROFILE_SIGNALS: { profile: Profile; inquiries: number; meetings: number }[] = [
@@ -283,41 +283,41 @@ export const QUESTION_SIGNALS: { id: string; profile: Profile; template: string;
   {
     id: 'sig-q-primera',
     profile: 'primera',
-    template: 'col-primera',
+    template: 'nat-primera',
     questions: [
       { q: '¿Aceptan crédito hipotecario?', pct: 68 },
-      { q: '¿Cuándo es la entrega?', pct: 41 },
-      { q: '¿Cuánto es el anticipo?', pct: 33 },
+      { q: '¿Cuándo puedo mudarme?', pct: 41 },
+      { q: '¿Cuánto es la entrega?', pct: 33 },
     ],
   },
   {
     id: 'sig-q-inversor',
     profile: 'inversor',
-    template: 'col-mono-inv',
+    template: 'arb-inversor',
     questions: [
-      { q: '¿Qué rentabilidad tiene?', pct: 57 },
-      { q: '¿Cuándo es la entrega?', pct: 44 },
+      { q: '¿Cuánto se valoriza el lote?', pct: 57 },
+      { q: '¿Cuándo puedo escriturar?', pct: 44 },
       { q: '¿Se puede ceder antes de la escritura?', pct: 29 },
     ],
   },
   {
     id: 'sig-q-conocido',
     profile: 'conocido',
-    template: 'bel-conocido',
+    template: 'nat-conocido',
     questions: [
       { q: '¿Mantengo el beneficio de cliente?', pct: 52 },
-      { q: '¿Puedo entregar mi depto como parte de pago?', pct: 31 },
+      { q: '¿Puedo entregar mi propiedad como parte de pago?', pct: 31 },
       { q: '¿Qué desarrollos tienen ahora?', pct: 27 },
     ],
   },
   {
     id: 'sig-q-recomendado',
     profile: 'recomendado',
-    template: 'nun-recomendado',
+    template: 'arb-recomendado',
     questions: [
       { q: '¿Tengo beneficio por venir recomendado?', pct: 61 },
-      { q: '¿Puedo ver un departamento terminado?', pct: 38 },
-      { q: '¿Es el mismo edificio que mi conocido?', pct: 24 },
+      { q: '¿Puedo recorrer el loteo?', pct: 38 },
+      { q: '¿Es el mismo barrio que mi conocido?', pct: 24 },
     ],
   },
 ]
@@ -328,139 +328,139 @@ type Template = Omit<CampaignDraft, 'id' | 'template' | 'status' | 'createdAt'> 
 const q = (t: string, question: string, pct: number): AdSegment => ({ t, q: question, pct })
 
 export const TEMPLATES: Record<string, () => Template> = {
-  'col-primera': () => ({
-    campaignName: 'Colegiales 1ª vivienda II',
-    developmentId: 'colegiales',
+  'nat-primera': () => ({
+    campaignName: 'Torre Natalini 1ª vivienda II',
+    developmentId: 'natalini',
     typology: '2 ambientes',
     profile: 'primera',
     budget: 350_000,
     days: 14,
     cta: 'Enviar mensaje',
     segments: [
-      { t: 'Tu primer 2 ambientes en Colegiales, ' },
+      { t: 'Tu primer 2 ambientes en Torre Natalini, ' },
       q('con crédito hipotecario', '¿Aceptan crédito hipotecario?', 68),
       { t: '. ' },
-      q('Entrega diciembre 2027', '¿Cuándo es la entrega?', 41),
-      { t: `. Desde ${priceToken('colegiales', '2 ambientes')}, ` },
-      q('30% de anticipo y cuotas en pesos durante la obra', '¿Cuánto es el anticipo?', 33),
-      { t: '. Escribinos y coordinamos una visita al departamento modelo.' },
+      q('Edificio terminado, entrega inmediata', '¿Cuándo puedo mudarme?', 41),
+      { t: `. Desde ${priceToken('natalini', '2 ambientes')}, ` },
+      q('con entrega y saldo financiado', '¿Cuánto es la entrega?', 33),
+      { t: '. Escribinos y coordinamos una visita al edificio.' },
     ],
     reasoning:
-      'La campaña anterior de este desarrollo consiguió 11 reuniones con ARS 420.000. Proponemos ARS 350.000 por 14 días enfocados solo en primera vivienda, que es el perfil que más avanza en Colegiales.',
+      'La campaña de primera vivienda de Torre Natalini lleva 22 reuniones con ARS 1.240.000 (ARS 56.364 cada una). Sumamos ARS 350.000 por 14 días enfocados solo en primera vivienda, que es el perfil que más avanza en este edificio.',
     signals: [
-      { id: 'sig-dev', label: 'Colegiales 2 amb · 19 reuniones' },
+      { id: 'sig-dev', label: 'Torre Natalini 2 amb · 19 reuniones' },
       { id: 'sig-profiles', label: 'Primera vivienda avanza 41%' },
       { id: 'sig-q-primera', label: 'Preguntas de primera vivienda' },
     ],
   }),
-  'nun-inversor': () => ({
-    campaignName: 'Núñez inversores II',
-    developmentId: 'nunez',
-    typology: 'Monoambiente',
+  'bdn-inversor': () => ({
+    campaignName: 'Brisas del Norte inversores II',
+    developmentId: 'brisas',
+    typology: 'Lote con costa',
     profile: 'inversor',
     budget: 280_000,
     days: 10,
     cta: 'Más información',
     segments: [
-      { t: 'Monoambientes en Núñez, a 6 cuadras de Ciudad Universitaria. ' },
-      q('Rentabilidad estimada de 5,5% a 6% anual', '¿Qué rentabilidad tiene?', 57),
+      { t: 'Lotes con costa a la laguna en Brisas del Norte: solo 7 en todo el barrio. ' },
+      q('Los valores suben con cada etapa', '¿Cuánto se valoriza el lote?', 57),
       { t: '. ' },
-      q('Entrega marzo 2027', '¿Cuándo es la entrega?', 44),
+      q('Escritura inmediata', '¿Cuándo puedo escriturar?', 44),
       { t: ', con ' },
       q('cesión de boleto permitida antes de escriturar', '¿Se puede ceder antes de la escritura?', 29),
-      { t: `. Desde ${priceToken('nunez', 'Monoambiente')}.` },
+      { t: `. Desde ${priceToken('brisas', 'Lote con costa')}.` },
     ],
     reasoning:
-      'Núñez inversores lleva 12 reuniones con ARS 860.000 (ARS 71.667 cada una). Sumamos ARS 280.000 por 10 días con un texto que responde rentabilidad y cesión, las dos preguntas que hoy demoran la primera reunión.',
+      'Brisas del Norte inversores lleva 12 reuniones con ARS 860.000 (ARS 71.667 cada una). Sumamos ARS 280.000 por 10 días con un texto que responde valorización y cesión, las dos preguntas que hoy demoran la primera reunión.',
     signals: [
-      { id: 'sig-dev', label: 'Núñez mono · 33% llega a reunión' },
+      { id: 'sig-dev', label: 'Brisas lote con costa · 33% llega a reunión' },
       { id: 'sig-q-inversor', label: 'Preguntas de inversores' },
     ],
   }),
-  'bel-conocido': () => ({
-    campaignName: 'Belgrano R clientes MARQ',
-    developmentId: 'belgrano',
+  'nat-conocido': () => ({
+    campaignName: 'Torre Natalini clientes MARQ',
+    developmentId: 'natalini',
     typology: '3 ambientes',
     profile: 'conocido',
     budget: 180_000,
     days: 10,
     cta: 'Enviar mensaje',
     segments: [
-      { t: 'Volvé a elegir MARQ: últimos 3 ambientes en Belgrano R, listos para mudarse. ' },
+      { t: 'Volvé a elegir MARQ: últimas unidades en Torre Natalini, listas para mudarse. ' },
       q('Como cliente MARQ mantenés tu 3% de beneficio', '¿Mantengo el beneficio de cliente?', 52),
       { t: ' y ' },
-      q('podés entregar tu depto actual como parte de pago', '¿Puedo entregar mi depto como parte de pago?', 31),
-      { t: `. Desde ${priceToken('belgrano', '3 ambientes')}.` },
+      q('podés entregar tu propiedad actual como parte de pago', '¿Puedo entregar mi propiedad como parte de pago?', 31),
+      { t: `. Desde ${priceToken('natalini', '3 ambientes')}.` },
     ],
     reasoning:
-      'Los clientes conocidos son el perfil que más avanza (58% llega a reunión). La campaña de Belgrano R está pausada; proponemos reactivarla con ARS 180.000 por 10 días, solo para clientes MARQ y personas parecidas a ellos.',
+      'Los clientes conocidos son el perfil que más avanza (58% llega a reunión). La campaña de Torre Natalini está pausada; proponemos reactivarla con ARS 180.000 por 10 días, solo para clientes MARQ y personas parecidas a ellos.',
     signals: [
       { id: 'sig-profiles', label: 'Cliente conocido avanza 58%' },
       { id: 'sig-q-conocido', label: 'Preguntas de clientes' },
     ],
   }),
-  'urq-primera': () => ({
-    campaignName: 'Villa Urquiza 1ª vivienda',
-    developmentId: 'urquiza',
-    typology: '2 ambientes',
+  'pm-primera': () => ({
+    campaignName: 'Pueblo Mío tu casa',
+    developmentId: 'pueblomio',
+    typology: 'Lote 400 m²',
     profile: 'primera',
     budget: 300_000,
     days: 14,
     cta: 'Enviar mensaje',
     segments: [
-      { t: 'Tu primer 2 ambientes en Villa Urquiza, ' },
-      q('con crédito hipotecario al escriturar', '¿Aceptan crédito hipotecario?', 68),
+      { t: 'Tu lote para construir tu casa en Pueblo Mío, ' },
+      q('barrio privado con laguna y control de acceso', '¿Tiene seguridad y servicios?', 52),
       { t: '. ' },
-      q('Anticipo del 25% y el resto en cuotas en pesos', '¿Cuánto es el anticipo?', 33),
-      { t: `. Desde ${priceToken('urquiza', '2 ambientes')}, ` },
-      q('entrega 2028', '¿Cuándo es la entrega?', 41),
+      q('Entrega de lotes 2028', '¿Cuándo entregan los lotes?', 41),
+      { t: `. Desde ${priceToken('pueblomio', 'Lote 400 m²')}, ` },
+      q('30% de entrega y el resto en cuotas', '¿Cuánto es la entrega?', 33),
       { t: '.' },
     ],
     reasoning:
-      'La campaña amplia de Villa Urquiza trajo 214 consultas pero solo 9 reuniones (ARS 175.556 cada una). Proponemos pasar ARS 300.000 por 14 días a primera vivienda: menos consultas, pero de gente que avanza.',
+      'La campaña amplia de Pueblo Mío trajo 214 consultas pero solo 9 reuniones (ARS 175.556 cada una). Proponemos pasar ARS 300.000 por 14 días a quienes quieren construir su casa: menos consultas, pero de gente que avanza.',
     signals: [
-      { id: 'sig-dev', label: 'Villa Urquiza 2 amb · 8% llega a reunión' },
+      { id: 'sig-dev', label: 'Pueblo Mío lote 400 · 8% llega a reunión' },
       { id: 'sig-profiles', label: 'Primera vivienda avanza 41%' },
       { id: 'sig-q-primera', label: 'Preguntas de primera vivienda' },
     ],
   }),
-  'col-mono-inv': () => ({
-    campaignName: 'Colegiales mono inversores',
-    developmentId: 'colegiales',
-    typology: 'Monoambiente',
+  'arb-inversor': () => ({
+    campaignName: 'Gran Arboledas inversores',
+    developmentId: 'arboledas',
+    typology: 'Lote 300 m²',
     profile: 'inversor',
     budget: 220_000,
     days: 10,
     cta: 'Más información',
     segments: [
-      { t: `Invertí en Colegiales: monoambientes desde ${priceToken('colegiales', 'Monoambiente')}. ` },
-      q('Rentabilidad estimada de 5,5% a 6% anual', '¿Qué rentabilidad tiene?', 57),
+      { t: `Invertí en Gran Arboledas: lotes desde ${priceToken('arboledas', 'Lote 300 m²')}. ` },
+      q('Los valores suben con cada etapa', '¿Cuánto se valoriza el lote?', 57),
       { t: ', ' },
-      q('entrega diciembre 2027', '¿Cuándo es la entrega?', 44),
+      q('escritura inmediata', '¿Cuándo puedo escriturar?', 44),
       { t: ' y ' },
       q('cesión de boleto permitida', '¿Se puede ceder antes de la escritura?', 29),
       { t: '.' },
     ],
     reasoning:
-      'Colegiales monoambiente suma 34 consultas pero solo 7 llegan a reunión, y más de la mitad pregunta por rentabilidad antes de avanzar. Probamos ARS 220.000 por 10 días con la rentabilidad en el primer renglón.',
+      'Gran Arboledas lote 300 m² suma 34 consultas pero solo 7 llegan a reunión, y más de la mitad pregunta cuánto se valoriza antes de avanzar. Probamos ARS 220.000 por 10 días con la valorización en el primer renglón.',
     signals: [
-      { id: 'sig-dev', label: 'Colegiales mono · 21% llega a reunión' },
+      { id: 'sig-dev', label: 'Gran Arboledas lote 300 · 21% llega a reunión' },
       { id: 'sig-q-inversor', label: 'Preguntas de inversores' },
     ],
   }),
-  'nun-recomendado': () => ({
-    campaignName: 'Núñez parecidos a clientes',
-    developmentId: 'nunez',
-    typology: '2 ambientes',
+  'arb-recomendado': () => ({
+    campaignName: 'Gran Arboledas parecidos a clientes',
+    developmentId: 'arboledas',
+    typology: 'Lote 400 m²',
     profile: 'recomendado',
     budget: 200_000,
     days: 14,
     cta: 'Enviar mensaje',
     segments: [
-      { t: `Como quienes ya viven en MARQ: 2 ambientes en Núñez desde ${priceToken('nunez', '2 ambientes')}. ` },
-      q('Si venís recomendado, tenés beneficio en el anticipo', '¿Tengo beneficio por venir recomendado?', 61),
+      { t: `Como quienes ya construyen en MARQ: lotes de 400 m² en Gran Arboledas desde ${priceToken('arboledas', 'Lote 400 m²')}. ` },
+      q('Si venís recomendado, tenés beneficio en la entrega', '¿Tengo beneficio por venir recomendado?', 61),
       { t: '. ' },
-      q('Visitá un departamento terminado cuando quieras', '¿Puedo ver un departamento terminado?', 38),
+      q('Recorré el loteo cuando quieras', '¿Puedo recorrer el loteo?', 38),
       { t: '.' },
     ],
     reasoning:
@@ -473,27 +473,49 @@ export const TEMPLATES: Record<string, () => Template> = {
   'marq-inst': () => ({
     campaignName: 'MARQ, quién está detrás',
     objective: 'marca',
-    developmentId: 'belgrano',
+    developmentId: 'natalini',
     typology: '3 ambientes',
     budget: 250_000,
     days: 14,
-    ...brandVariant('belgrano', 250_000, 14),
+    ...brandVariant('natalini', 250_000, 14),
     signals: [
       { id: 'sig-brand', label: `${BRAND_ASK_WHO}% pregunta quién está detrás` },
       { id: 'sig-brand', label: 'Nombran a MARQ: 1 de cada 3' },
     ],
   }),
-  'urq-amplio': () => ({
-    campaignName: 'Villa Urquiza ampliación',
-    developmentId: 'urquiza',
-    typology: '3 ambientes',
+  'bdn-casas': () => ({
+    campaignName: 'Casas BDN tu casa y tu terreno',
+    developmentId: 'casasbdn',
+    typology: 'Media 3 amb.',
+    profile: 'primera',
+    budget: 320_000,
+    days: 14,
+    cta: 'Enviar mensaje',
+    segments: [
+      { t: 'Tu casa y tu terreno en Brisas del Norte, el barrio costero con laguna. ' },
+      q('Modelos de 2 a 5 ambientes', '¿Qué modelos hay?', 47),
+      { t: `. Desde ${priceToken('casasbdn', 'Base 2 amb.')}, ` },
+      q('con el terreno incluido', '¿El valor incluye el terreno?', 52),
+      { t: '. Escribinos y recorremos el barrio.' },
+    ],
+    reasoning:
+      'Casas BDN suma consultas de familias que preguntan si el valor incluye el terreno y qué modelos hay. Probamos ARS 320.000 por 14 días con esas dos respuestas en el anuncio.',
+    signals: [
+      { id: 'sig-dev', label: 'Casas BDN 3 amb · 32% llega a reunión' },
+      { id: 'sig-q-primera', label: 'Preguntas de primera vivienda' },
+    ],
+  }),
+  'pm-amplio': () => ({
+    campaignName: 'Pueblo Mío ampliación',
+    developmentId: 'pueblomio',
+    typology: 'Lote 600 m²',
     profile: 'amplio',
     budget: 900_000,
     days: 21,
     cta: 'Más información',
-    segments: [{ t: `Nuevo en Villa Urquiza: 3 ambientes desde ${priceToken('urquiza', '3 ambientes')}. Consultá por financiación.` }],
-    reasoning: 'Ampliar alcance del lanzamiento de Villa Urquiza a todo CABA y GBA norte.',
-    signals: [{ id: 'sig-dev', label: 'Villa Urquiza 3 amb' }],
+    segments: [{ t: `Nuevo en Pueblo Mío: lotes de 600 m² desde ${priceToken('pueblomio', 'Lote 600 m²')}. Consultá por financiación.` }],
+    reasoning: 'Ampliar alcance del lanzamiento de Pueblo Mío a todo el Gran Resistencia y Corrientes.',
+    signals: [{ id: 'sig-dev', label: 'Pueblo Mío lote 600' }],
   }),
 }
 
@@ -502,18 +524,18 @@ const joinEs = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')}
 
 export function brandVariant(developmentId: string, budget: number, days: number): DraftVariant {
   const dev = devById(developmentId)
-  const where = joinEs(DEVELOPMENTS.map((x) => x.neighborhood))
+  const all = joinEs(DEVELOPMENTS.slice(0, 4).map((x) => x.name))
   return {
     profile: 'amplio',
     cta: 'Más información',
     segments: [
       { t: `Detrás de ${dev.neighborhood} hay un nombre: MARQ. ` },
-      q(`Desarrollamos en ${where}`, '¿Quién está detrás del edificio?', BRAND_ASK_WHO),
-      { t: '. ' },
-      q('Belgrano R ya está entregado y habitado', '¿Puedo ver un edificio terminado?', 38),
+      q('+15 años desarrollando en la región', '¿Quién está detrás del proyecto?', BRAND_ASK_WHO),
+      { t: `. ${all}. ` },
+      q('Torre Natalini ya está terminado y se puede visitar', '¿Puedo ver algo terminado?', 38),
       { t: '. Conocé MARQ.' },
     ],
-    reasoning: `El ${BRAND_ASK_WHO}% de las consultas pregunta quién está detrás del edificio y solo 1 de cada 3 nombra a MARQ. Proponemos ${ars(budget)} por ${days} días para que el edificio se asocie con la empresa. Se mide por personas alcanzadas y costo cada 1.000, no por reuniones.`,
+    reasoning: `El ${BRAND_ASK_WHO}% de las consultas pregunta quién está detrás del proyecto y solo 1 de cada 3 nombra a MARQ. Proponemos ${ars(budget)} por ${days} días para que cada proyecto se asocie con la empresa. Se mide por personas alcanzadas y costo cada 1.000, no por reuniones.`,
   }
 }
 
@@ -535,7 +557,7 @@ export function campaignNameForDraft(d: CampaignDraft) {
 }
 
 /** Orden en que el botón "Generar propuesta" va sacando borradores */
-export const GEN_CYCLE = ['urq-primera', 'col-mono-inv', 'nun-recomendado', 'bel-conocido', 'marq-inst']
+export const GEN_CYCLE = ['pm-primera', 'arb-inversor', 'arb-recomendado', 'bdn-casas', 'nat-conocido', 'marq-inst']
 
 let did = 0
 export function buildDraft(template: string, createdAt = Date.now(), extra: Partial<CampaignDraft> = {}): CampaignDraft {
@@ -546,11 +568,11 @@ export function buildDraft(template: string, createdAt = Date.now(), extra: Part
 export const campaignNameFor = (template: string) => TEMPLATES[template]().campaignName
 
 export const INITIAL_DRAFTS: CampaignDraft[] = [
-  buildDraft('col-primera', NOW - 2 * H),
-  buildDraft('nun-inversor', NOW - 5 * H - 20 * MIN),
+  buildDraft('nat-primera', NOW - 2 * H),
+  buildDraft('bdn-inversor', NOW - 5 * H - 20 * MIN),
   buildDraft('marq-inst', NOW - 9 * H),
-  buildDraft('bel-conocido', NOW - 1 * D - 3 * H),
-  buildDraft('urq-amplio', NOW - 3 * D, { status: 'descartado', discardReason: 'Presupuesto muy alto' }),
+  buildDraft('nat-conocido', NOW - 1 * D - 3 * H),
+  buildDraft('pm-amplio', NOW - 3 * D, { status: 'descartado', discardReason: 'Presupuesto muy alto' }),
 ]
 
 export const DRAFT_DISCARD_REASONS = [
