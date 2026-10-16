@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowDownRight, ArrowRight, ArrowUpRight, CalendarCheck, CalendarClock, ChevronRight, CircleCheck, Inbox, PartyPopper, Pause, SquareKanban, X } from 'lucide-react'
+import { ArrowDownRight, BadgeCheck, ArrowRight, ArrowUpRight, CalendarCheck, CalendarClock, ChevronRight, CircleCheck, Inbox, PartyPopper, Pause, SquareKanban, X } from 'lucide-react'
 import { Area, ComposedChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useStore } from '../../store'
 import type { Campaign, CampaignStatus, ConversionEvent } from '../../types'
-import { cpi, cpm, dailySeries } from '../../data/attraction'
+import { cpi, cpm, cpr, dailySeries, frequency, isBrand } from '../../data/attraction'
 import { devById, stageById } from '../../data/config'
 import { Avatar, ClassChip, StagePill } from '../../components/ui'
-import { AnimatedNumber, DevImage, ProfileChip } from '../../components/attraction-ui'
+import { AnimatedNumber, DevImage, ObjectiveChip, ProfileChip } from '../../components/attraction-ui'
 import { ars, cn, relTime } from '../../lib/utils'
 
 const fade = (i: number) => ({
@@ -24,6 +24,8 @@ export function Campaigns() {
   const list = [...campaigns].sort((a, b) => order[a.status] - order[b.status])
   const live = campaigns.filter((c) => c.status !== 'finalizada')
   const spent = live.reduce((a, c) => a + c.spent, 0)
+  // Las campañas de marca no buscan reuniones: no entran en el costo por reunión
+  const perfSpent = live.filter((c) => !isBrand(c)).reduce((a, c) => a + c.spent, 0)
   const meetings = live.reduce((a, c) => a + c.meetingsScheduled, 0)
   const sent = campaigns.reduce((a, c) => a + c.conversions.filter((x) => x.event !== 'Reserva').length, 0)
 
@@ -33,14 +35,14 @@ export function Campaigns() {
         <div className="grid grid-cols-4 gap-4">
           <Stat i={0} label="Inversión en campañas vigentes" value={spent} prefix="ARS" />
           <Stat i={1} label="Reuniones programadas desde pauta" value={meetings} />
-          <Stat i={2} label="Costo promedio por reunión" value={meetings ? spent / meetings : 0} prefix="ARS" accent />
+          <Stat i={2} label="Costo promedio por reunión" value={meetings ? perfSpent / meetings : 0} prefix="ARS" accent />
           <Stat i={3} label="Conversiones enviadas a Meta" value={sent} badge="Simulado" />
         </div>
 
         <motion.div {...fade(4)} className="mt-7 mb-3 flex items-end justify-between">
           <div>
             <p className="font-serif text-[18px] text-ink">Campañas</p>
-            <p className="mt-0.5 text-[12px] text-ink-3">El número grande es lo que cuesta cada reunión programada, no cada consulta</p>
+            <p className="mt-0.5 text-[12px] text-ink-3">El número grande es lo que cuesta cada reunión programada, no cada consulta · las de marca se miden por alcance</p>
           </div>
         </motion.div>
 
@@ -127,12 +129,31 @@ function MiniFunnel({ c }: { c: Campaign }) {
   )
 }
 
+function BrandTiles({ c }: { c: Campaign }) {
+  const tiles = [
+    { l: 'Impresiones', v: c.impressions ? Math.round(c.impressions).toLocaleString('es-AR') : '—' },
+    { l: 'Frecuencia', v: frequency(c) ? frequency(c).toLocaleString('es-AR', { maximumFractionDigits: 1 }) : '—' },
+    { l: 'Cada 1.000 personas', v: cpr(c) ? ars(cpr(c)) : '—' },
+  ]
+  return (
+    <div className="grid grid-cols-3 gap-1.5">
+      {tiles.map((t) => (
+        <div key={t.l} className="min-w-0 rounded-xl bg-surface-2/70 px-2 py-1.5">
+          <p className="truncate text-[13px] leading-none font-semibold text-ink tabular-nums">{t.v}</p>
+          <p className="mt-1 truncate text-[9.5px] text-ink-3">{t.l}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function CampaignCard({ c, i }: { c: Campaign; i: number }) {
   const open = useStore((s) => s.openCampaign)
   const dev = devById(c.developmentId)
   const value = cpm(c)
   const drop = recentDrop(c)
   const elapsed = Math.min(c.days, Math.max(0, Math.round((Date.now() - c.startedAt) / 86_400_000)))
+  const brand = isBrand(c)
 
   return (
     <motion.button
@@ -159,13 +180,25 @@ function CampaignCard({ c, i }: { c: Campaign; i: number }) {
       </DevImage>
       <div className="p-4">
         <div className="flex items-center gap-2">
+          {brand && <ObjectiveChip value="marca" size="xs" />}
           <ProfileChip value={c.profile} size="xs" />
-          <span className="text-[11.5px] text-ink-3">{c.typology}</span>
+          {!brand && <span className="text-[11.5px] text-ink-3">{c.typology}</span>}
           <span className="ml-auto text-[11.5px] text-ink-2">
             Invertido <b className="font-semibold text-ink">{ars(c.spent)}</b>
           </span>
         </div>
 
+        {brand ? (
+          <div className="mt-4 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-medium text-ink-3">Personas alcanzadas</p>
+              <p className="mt-1 font-serif text-[36px] leading-none font-light tracking-tight text-ink">
+                {c.reach ? <AnimatedNumber value={c.reach} format={fmtArs} /> : <span className="text-[22px] text-ink-3">Aún sin alcance</span>}
+              </p>
+            </div>
+            <p className="text-right text-[11px] text-ink-3">{c.reach ? 'Se mide por alcance, no por reuniones' : 'Recién publicada'}</p>
+          </div>
+        ) : (
         <div className="mt-4 flex items-end justify-between gap-3">
           <div>
             <p className="text-[11px] font-medium text-ink-3">Costo por reunión programada</p>
@@ -195,9 +228,9 @@ function CampaignCard({ c, i }: { c: Campaign; i: number }) {
           </div>
         </div>
 
-        <div className="mt-4">
-          <MiniFunnel c={c} />
-        </div>
+        )}
+
+        <div className="mt-4">{brand ? <BrandTiles c={c} /> : <MiniFunnel c={c} />}</div>
 
         <div className="mt-4 flex items-center gap-2.5 border-t border-line pt-3">
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-3">
@@ -239,6 +272,7 @@ export function CampaignDrawer({ id }: { id: string }) {
   const grid = dark ? '#2d2a25' : '#ece7df'
   const value = cpm(c)
   const drop = recentDrop(c)
+  const brand = isBrand(c)
 
   const filterBoard = () => {
     useStore.setState({ boardOrigin: 'camp:' + c.id, view: 'board', campaignDrawerId: null })
@@ -269,19 +303,56 @@ export function CampaignDrawer({ id }: { id: string }) {
           <div className="absolute right-6 bottom-4 left-6 text-white">
             <p className="font-serif text-[26px] leading-tight">MARQ · {dev.neighborhood}</p>
             <p className="text-[12px] opacity-85">
-              Camp. {c.name} · {c.typology}
+              Camp. {c.name}
+              {!brand && ` · ${c.typology}`}
             </p>
           </div>
         </DevImage>
 
         <div className="scroll-soft flex-1 overflow-y-auto px-6 pt-5 pb-6">
           <div className="flex items-center gap-2">
+            {brand && <ObjectiveChip value="marca" />}
             <ProfileChip value={c.profile} />
             <span className="text-[12px] text-ink-3">
               {ars(c.spent)} de {ars(c.budget)} · {c.days} días
             </span>
           </div>
 
+          {brand ? (
+            <>
+              <div className="mt-4 grid grid-cols-3 gap-2.5">
+                <div className="rounded-2xl border border-line bg-surface p-3.5 shadow-soft">
+                  <p className="text-[11px] text-ink-3">Personas alcanzadas</p>
+                  <p className="mt-1.5 font-serif text-[24px] leading-none text-ink">{c.reach ? <AnimatedNumber value={c.reach} format={fmtArs} /> : '—'}</p>
+                </div>
+                <div className="rounded-2xl border border-line bg-surface p-3.5 shadow-soft">
+                  <p className="text-[11px] text-ink-3">Cada 1.000 personas</p>
+                  <p className="mt-1.5 font-serif text-[22px] leading-none whitespace-nowrap text-ink">{cpr(c) ? ars(cpr(c)) : '—'}</p>
+                </div>
+                <div className="rounded-2xl border border-line bg-surface p-3.5 shadow-soft">
+                  <p className="text-[11px] text-ink-3">Veces que la vio cada uno</p>
+                  <p className="mt-1.5 font-serif text-[24px] leading-none text-ink">
+                    {frequency(c) ? frequency(c).toLocaleString('es-AR', { maximumFractionDigits: 1 }) : '—'}
+                  </p>
+                </div>
+              </div>
+
+              <Section title="Texto del anuncio">
+                <p className="rounded-2xl border border-line bg-surface p-3.5 text-[13px] leading-relaxed text-ink-2 shadow-soft">{c.adText}</p>
+              </Section>
+
+              <Section title="Qué mide esta campaña">
+                <div className="flex items-start gap-2.5 rounded-2xl border border-line bg-surface p-3.5 text-[12px] leading-snug text-ink-2 shadow-soft">
+                  <BadgeCheck size={15} className="mt-px shrink-0 text-accent" />
+                  <span>
+                    No busca reuniones: busca que más gente asocie los edificios con <b className="font-semibold text-ink">MARQ</b>. Se mira cuánta gente alcanza y, en Métricas,
+                    cuántas consultas nuevas <b className="font-semibold text-ink">nombran a MARQ</b> por su cuenta.
+                  </span>
+                </div>
+              </Section>
+            </>
+          ) : (
+            <>
           <div className="mt-4 grid grid-cols-3 gap-2.5">
             <div className="col-span-1 rounded-2xl border border-line bg-surface p-3.5 shadow-soft">
               <p className="text-[11px] text-ink-3">Costo por reunión</p>
@@ -427,6 +498,8 @@ export function CampaignDrawer({ id }: { id: string }) {
               Al informar reuniones (y no solo mensajes), la plataforma aprende a buscar gente que avanza. Integración real vía Conversions API de Meta, a confirmar en etapa posterior.
             </p>
           </Section>
+            </>
+          )}
         </div>
       </motion.aside>
     </>

@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion'
-import { ArrowDownRight, ShieldCheck } from 'lucide-react'
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { ArrowDownRight, ArrowUpRight, BadgeCheck, ShieldCheck } from 'lucide-react'
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useStore } from '../store'
-import { DRAFT_BASELINE, DRAFT_DISCARD_REASONS, ORIGINS, PROFILES, cpi, cpm } from '../data/attraction'
+import { BRAND_ASK_WHO, BRAND_PHRASES, DRAFT_BASELINE, DRAFT_DISCARD_REASONS, HOW_THEY_KNEW, ORIGINS, PROFILES, RECOGNITION, RECOGNITION_START, cpi, cpm, cpr, isBrand } from '../data/attraction'
 import { devById } from '../data/config'
-import { SparkleIcon } from '../components/ui'
+import { ChannelIcon, SparkleIcon } from '../components/ui'
 import { ars, cn } from '../lib/utils'
 import type { Origin, Profile } from '../types'
 import { ChartTitle, Counter, Kpi, card, fade } from './Metrics'
@@ -82,6 +82,8 @@ export function AttractionMetrics() {
         <Kpi i={3} label="Conversiones informadas a Meta" value={sent} note="Simulado en el prototipo" />
         <Kpi i={4} label="Borradores de campaña aprobados" value={Math.round(((approved + edited) / totalDrafts) * 100)} suffix="%" note={`${approved + edited} de ${totalDrafts}`} />
       </div>
+
+      <Recognition />
 
       <div className="mt-4 grid grid-cols-12 gap-4">
         {/* Costo por reunión vs costo por consulta */}
@@ -333,6 +335,128 @@ export function AttractionMetrics() {
         </motion.div>
       </div>
     </>
+  )
+}
+
+/** Reconocimiento de MARQ: cuánta gente nombra a la empresa, no solo al edificio */
+function Recognition() {
+  const dark = useStore((s) => s.dark)
+  const campaigns = useStore((s) => s.campaigns)
+  const axis = dark ? '#736d63' : '#9a948a'
+  const grid = dark ? '#2d2a25' : '#ece7df'
+  const first = RECOGNITION[0]
+  const last = RECOGNITION[RECOGNITION.length - 1]
+  const since = RECOGNITION.find((w) => w.week === RECOGNITION_START) ?? first
+
+  const brand = campaigns.filter((c) => isBrand(c) && c.status !== 'finalizada')
+  const reach = brand.reduce((a, c) => a + (c.reach ?? 0), 0)
+  const brandSpent = brand.reduce((a, c) => a + (c.reach ? c.spent : 0), 0)
+  const per1000 = cpr({ spent: brandSpent, reach })
+
+  return (
+    <div className="mt-4 grid grid-cols-12 gap-4">
+      <motion.div {...fade(5)} className={cn(card, 'col-span-7 flex flex-col')}>
+        <div className="flex items-start justify-between gap-4">
+          <ChartTitle title="Reconocimiento de MARQ" sub="Consultas que nombran a MARQ por su cuenta, no solo al edificio · por semana" />
+          <div className="shrink-0 text-right">
+            <p className="font-serif text-[38px] leading-none font-light tracking-tight text-ink">
+              <Counter to={last.pct} />
+              <span className="text-[18px] text-ink-3">%</span>
+            </p>
+            <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[10.5px] font-semibold text-accent">
+              <ArrowUpRight size={11} /> +{last.pct - first.pct} pts desde agosto
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 min-h-[190px] flex-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={RECOGNITION} margin={{ top: 20, right: 12, left: -16, bottom: 0 }}>
+              <defs>
+                <linearGradient id="recFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke={grid} />
+              <XAxis dataKey="week" tick={{ fontSize: 11, fill: axis }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: axis }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} domain={[0, 40]} />
+              <ReferenceLine
+                x={RECOGNITION_START}
+                stroke="var(--accent)"
+                strokeDasharray="4 4"
+                label={{ value: 'Arranca la campaña de marca', position: 'top', fill: 'var(--accent)', fontSize: 11, fontWeight: 600 }}
+              />
+              <Tooltip
+                cursor={{ stroke: axis, strokeDasharray: '3 3' }}
+                content={({ active, payload, label }) =>
+                  active && payload?.length ? (
+                    <div className="rounded-xl border border-line bg-surface px-3 py-2 text-[12px] shadow-float">
+                      <p className="text-ink-3">Semana del {label}</p>
+                      <p className="font-semibold text-ink">{payload[0].value}% nombra a MARQ</p>
+                      <p className="text-ink-3">
+                        {payload[0].payload.named} de {payload[0].payload.total} consultas
+                      </p>
+                    </div>
+                  ) : null
+                }
+              />
+              <Area type="monotone" dataKey="pct" stroke="var(--accent)" strokeWidth={2} fill="url(#recFill)" animationDuration={1100} dot={{ r: 3, fill: 'var(--accent)', strokeWidth: 0 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {[
+            { l: 'Personas alcanzadas', v: reach ? reach.toLocaleString('es-AR') : '—', n: 'campañas de marca vigentes' },
+            { l: 'Cada 1.000 personas', v: per1000 ? ars(per1000) : '—', n: 'costo de llegar a 1.000' },
+            { l: 'Preguntan quién está detrás', v: `${BRAND_ASK_WHO}%`, n: `Desde la campaña, +${last.pct - since.pct} pts nombran a MARQ` },
+          ].map((x) => (
+            <div key={x.l} className="rounded-2xl bg-surface-2/70 p-3">
+              <p className="font-serif text-[22px] leading-none whitespace-nowrap text-ink">{x.v}</p>
+              <p className="mt-1.5 text-[11.5px] font-medium text-ink-2">{x.l}</p>
+              <p className="mt-0.5 text-[10.5px] leading-snug text-ink-3">{x.n}</p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      <motion.div {...fade(6)} className={cn(card, 'col-span-5 flex flex-col')}>
+        <div className="flex items-center gap-2">
+          <SparkleIcon size={15} />
+          <ChartTitle title="Cómo llegaron a conocer a MARQ" sub="Lo que cuentan las personas en sus consultas, detectado por el asistente" />
+        </div>
+        <div className="mt-4 space-y-2.5">
+          {HOW_THEY_KNEW.map((x, i) => (
+            <div key={x.label} className="flex items-center gap-3">
+              <span className="w-[168px] shrink-0 truncate text-[12px] text-ink-2">{x.label}</span>
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
+                <motion.div
+                  className="h-full rounded-full bg-accent"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(x.pct / HOW_THEY_KNEW[0].pct) * 100}%` }}
+                  transition={{ duration: 0.9, delay: 0.3 + i * 0.07 }}
+                />
+              </div>
+              <span className="w-8 text-right text-[12px] font-semibold text-ink">{x.pct}%</span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 mb-2 text-[10.5px] font-semibold tracking-[0.12em] text-ink-3 uppercase">Frases detectadas</p>
+        <div className="space-y-1.5">
+          {BRAND_PHRASES.map((x) => (
+            <div key={x.text} className="flex items-start gap-2.5 rounded-xl border border-line bg-surface-2/50 px-3 py-2">
+              <ChannelIcon channel={x.channel} size={14} className="mt-0.5 shrink-0" />
+              <p className="text-[12.5px] leading-snug text-ink-2">“{x.text}”</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-auto flex items-start gap-2.5 pt-4">
+          <BadgeCheck size={15} className="mt-px shrink-0 text-accent" />
+          <p className="text-[12px] leading-snug text-ink-3">
+            Es el indicador de la campaña de marca: no cuenta clics sino cuánta gente ya sabe quién está detrás del edificio. Datos de ejemplo en el prototipo.
+          </p>
+        </div>
+      </motion.div>
+    </div>
   )
 }
 

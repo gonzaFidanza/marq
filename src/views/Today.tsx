@@ -4,7 +4,7 @@ import { AlarmClock, ArrowRight, ArrowUpRight, ChevronDown, FileText, Inbox, Moo
 import { isStale, needsReply, useStore, type TodayTab } from '../store'
 import type { Contact } from '../types'
 import { STAGES, TEAM, devById } from '../data/config'
-import { CAMPAIGN_COLOR, cpm } from '../data/attraction'
+import { CAMPAIGN_COLOR, cpm, isBrand } from '../data/attraction'
 import { radarOpportunities } from '../data/pricing'
 import { Avatar, ClassChip, SparkleIcon, StagePill, TeamAvatar } from '../components/ui'
 import { AnimatedNumber, DevImage } from '../components/attraction-ui'
@@ -567,7 +567,7 @@ function ActiveCampaigns() {
       <div className="flex shrink-0 items-start justify-between gap-3">
         <div>
           <p className="font-serif text-[16px] text-ink">Campañas activas</p>
-          <p className="text-[11.5px] text-ink-3">Lo que cuesta cada reunión programada</p>
+          <p className="text-[11.5px] text-ink-3">Costo por reunión · alcance en las de marca</p>
         </div>
         <button
           onClick={open}
@@ -604,8 +604,17 @@ function ActiveCampaigns() {
                   </div>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="font-serif text-[15px] leading-none whitespace-nowrap text-ink">{value ? ars(value) : '—'}</p>
-                  <p className="mt-1 text-[10px] text-ink-3">{value ? 'por reunión' : 'sin reuniones aún'}</p>
+                  {isBrand(c) ? (
+                    <>
+                      <p className="font-serif text-[15px] leading-none whitespace-nowrap text-ink">{c.reach ? c.reach.toLocaleString('es-AR') : '—'}</p>
+                      <p className="mt-1 text-[10px] text-ink-3">{c.reach ? 'personas alcanzadas' : 'sin alcance aún'}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-serif text-[15px] leading-none whitespace-nowrap text-ink">{value ? ars(value) : '—'}</p>
+                      <p className="mt-1 text-[10px] text-ink-3">{value ? 'por reunión' : 'sin reuniones aún'}</p>
+                    </>
+                  )}
                 </div>
               </button>
             )

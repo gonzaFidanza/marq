@@ -21,10 +21,10 @@ import {
 } from 'lucide-react'
 import { useFillPrices, useLastPriceChange, usePrice, useStore } from '../../store'
 import type { AdSegment, CampaignDraft, DraftStatus } from '../../types'
-import { PROFILES, adText, resegment } from '../../data/attraction'
-import { devById, listPriceKey } from '../../data/config'
+import { OBJECTIVES, PROFILES, adText, isBrand, objectiveOf, resegment } from '../../data/attraction'
+import { DEVELOPMENTS, devById, listPriceKey } from '../../data/config'
 import { SparkleIcon } from '../../components/ui'
-import { AnimatedNumber, DevImage, MarqAvatar, ProfileChip } from '../../components/attraction-ui'
+import { AnimatedNumber, DevImage, MarqAvatar, ObjectiveChip, ProfileChip } from '../../components/attraction-ui'
 import { ars, cn, relTime, usd } from '../../lib/utils'
 
 type Edit = { text: string; budget: number; days: number }
@@ -141,7 +141,8 @@ function DraftRow({ d, active, onClick }: { d: CampaignDraft; active: boolean; o
             <span className={cn('ml-auto shrink-0 text-[11px]', d.fresh ? 'font-semibold text-accent' : 'text-ink-3')}>{relTime(d.createdAt)}</span>
           </div>
           <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-3">
-            {d.typology} · <span style={{ color: PROFILES[d.profile].color }}>{PROFILES[d.profile].label}</span>
+            {isBrand(d) ? <span style={{ color: OBJECTIVES.marca.color }}>Marca</span> : d.typology} ·{' '}
+            <span style={{ color: PROFILES[d.profile].color }}>{PROFILES[d.profile].label}</span>
           </p>
           <div className="mt-2 flex items-center gap-1.5">
             <StatusChip status={d.status} />
@@ -312,6 +313,7 @@ function DraftPreview({ d, edit, setEdit }: { d: CampaignDraft; edit: Edit | nul
           <div className="flex items-center gap-2">
             <p className="truncate text-[15px] font-semibold text-ink">MARQ · {dev.neighborhood}</p>
             <ProfileChip value={d.profile} />
+            <ObjectiveChip value={objectiveOf(d)} />
           </div>
           <p className="mt-0.5 text-[12px] text-ink-3">
             Anuncio para Instagram y Facebook · {d.typology} · generado {relTime(d.createdAt)}
@@ -356,8 +358,8 @@ function DraftPreview({ d, edit, setEdit }: { d: CampaignDraft; edit: Edit | nul
           <div className="sticky top-6 w-[214px] shrink-0 space-y-3 self-start pt-10">
             <Annotation
               icon={<BadgeCheck size={14} />}
-              title="Firma MARQ"
-              body="La empresa se ve detrás del desarrollo."
+              title="Sello MARQ"
+              body={isBrand(d) ? 'Es el centro de la pieza: que el edificio se asocie con la empresa.' : 'Cada pieza lleva «Un desarrollo de MARQ» sobre la imagen.'}
               color="#8a7f6c"
               show
               delay={0.2}
@@ -523,6 +525,17 @@ function AdText({
   )
 }
 
+/** Sello de marca sobre la imagen: que se vea quién está detrás del desarrollo */
+function MarqSeal() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/92 py-[3px] pr-2.5 pl-[3px] text-[9.5px] font-semibold text-[#1d1b17] shadow-sm backdrop-blur">
+      <MarqAvatar size={17} /> Un desarrollo de MARQ
+    </span>
+  )
+}
+
+const WHERE = DEVELOPMENTS.map((x) => x.neighborhood).join(' · ')
+
 type AdProps = { d: CampaignDraft; segments: AdSegment[]; shown: number; typing: boolean; thinking: boolean; hover: number | null }
 
 function PostAd({ d, segments, shown, typing, thinking, hover }: AdProps) {
@@ -540,12 +553,25 @@ function PostAd({ d, segments, shown, typing, thinking, hover }: AdProps) {
       </div>
       <DevImage id={d.developmentId} className="aspect-square">
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+        <div className="absolute top-3 left-3">
+          <MarqSeal />
+        </div>
         <div className="absolute right-3 bottom-3 left-3 text-white">
-          <p className="text-[10px] font-semibold tracking-[0.18em] uppercase opacity-80">MARQ</p>
-          <p className="font-serif text-[24px] leading-none">{dev.neighborhood}</p>
-          <p className="mt-1 text-[11px] opacity-85">
-            {d.typology} · desde {usd(price)}
-          </p>
+          {isBrand(d) ? (
+            <>
+              <p className="font-serif text-[24px] leading-[1.05]">
+                Detrás de {dev.neighborhood}, <em>MARQ</em>
+              </p>
+              <p className="mt-1 text-[11px] opacity-85">{WHERE}</p>
+            </>
+          ) : (
+            <>
+              <p className="font-serif text-[24px] leading-none">{dev.neighborhood}</p>
+              <p className="mt-1 text-[11px] opacity-85">
+                {d.typology} · desde {usd(price)}
+              </p>
+            </>
+          )}
         </div>
       </DevImage>
       <div className="flex items-center justify-between bg-[#3a4730] px-3 py-2.5 text-[12.5px] font-semibold text-white">
@@ -594,8 +620,19 @@ function StoryAd({ d, segments, shown, typing, thinking, hover }: AdProps) {
         </div>
         <X size={18} className="ml-auto opacity-90" />
       </div>
+      <div className="absolute top-[88px] left-3">
+        <MarqSeal />
+      </div>
       <div className="absolute right-4 bottom-24 left-4 text-white">
-        <p className="font-serif text-[30px] leading-none">{dev.neighborhood}</p>
+        <p className="font-serif text-[30px] leading-[1.05]">
+          {isBrand(d) ? (
+            <>
+              Detrás de {dev.neighborhood}, <em>MARQ</em>
+            </>
+          ) : (
+            dev.neighborhood
+          )}
+        </p>
         <div className="mt-3 text-[13.5px] leading-[1.45] font-medium [text-shadow:0_1px_8px_rgba(0,0,0,0.4)]">
           {thinking ? (
             <div className="space-y-2">
@@ -832,6 +869,40 @@ function Label({ children }: { children: React.ReactNode }) {
   return <p className="mb-2.5 text-[10.5px] font-semibold tracking-[0.12em] text-ink-3 uppercase">{children}</p>
 }
 
+/** Elegir qué busca la campaña: cambia el texto, el botón, el público y cómo se mide */
+function ObjectivePicker({ d, locked }: { d: CampaignDraft; locked: boolean }) {
+  const setObjective = useStore((s) => s.setDraftObjective)
+  const current = objectiveOf(d)
+  return (
+    <div className={cn('rounded-2xl border border-line bg-surface p-1.5 shadow-soft', locked && 'opacity-60')}>
+      <div className="grid grid-cols-2 gap-1">
+        {(['consultas', 'marca'] as const).map((o) => {
+          const on = current === o
+          return (
+            <button
+              key={o}
+              disabled={locked}
+              onClick={() => setObjective(d.id, o)}
+              className={cn(
+                'relative flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[12.5px] font-medium transition-colors',
+                on ? 'text-ink' : 'text-ink-3 hover:text-ink',
+                locked && 'cursor-not-allowed',
+              )}
+            >
+              {on && <motion.span layoutId="draft-objective" className="absolute inset-0 rounded-xl bg-surface-2 shadow-soft" transition={{ type: 'spring', stiffness: 450, damping: 34 }} />}
+              <span className="relative flex items-center gap-1.5" style={on ? { color: OBJECTIVES[o].color } : undefined}>
+                {o === 'marca' ? <BadgeCheck size={14} /> : <MessageCircle size={14} />}
+                {OBJECTIVES[o].label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      <p className="px-2.5 pt-2 pb-1.5 text-[11.5px] leading-snug text-ink-2">{OBJECTIVES[current].blurb}</p>
+    </div>
+  )
+}
+
 function DraftSheet({ d, edit, setEdit, dim }: { d: CampaignDraft; edit: Edit | null; setEdit: (e: Edit | null) => void; dim: boolean }) {
   const focusSignal = useStore((s) => s.focusSignal)
   const dev = devById(d.developmentId)
@@ -869,13 +940,19 @@ function DraftSheet({ d, edit, setEdit, dim }: { d: CampaignDraft; edit: Edit | 
         </motion.div>
 
         <motion.div custom={1} variants={section} className="mt-6">
-          <Label>Perfil objetivo</Label>
+          <Label>Objetivo de la campaña</Label>
+          <ObjectivePicker d={d} locked={!!edit || d.status === 'aprobado' || d.status === 'descartado'} />
+        </motion.div>
+
+        <motion.div custom={1} variants={section} className="mt-6">
+          <Label>{isBrand(d) ? 'Público' : 'Perfil objetivo'}</Label>
           <div className="rounded-2xl border bg-surface p-3.5 shadow-soft" style={{ borderColor: PROFILES[d.profile].color + '40' }}>
             <ProfileChip value={d.profile} />
             <p className="mt-2 text-[12px] leading-snug text-ink-2">{PROFILE_DESC[d.profile]}</p>
           </div>
         </motion.div>
 
+        {!isBrand(d) && (
         <motion.div custom={2} variants={section} className="mt-6">
           <Label>Precio vigente</Label>
           <div className="rounded-2xl border border-line bg-surface p-3.5 shadow-soft">
@@ -900,6 +977,7 @@ function DraftSheet({ d, edit, setEdit, dim }: { d: CampaignDraft; edit: Edit | 
             </p>
           </div>
         </motion.div>
+        )}
 
         <motion.div custom={3} variants={section} className="mt-6">
           <Label>Presupuesto sugerido</Label>
@@ -967,9 +1045,16 @@ function DraftSheet({ d, edit, setEdit, dim }: { d: CampaignDraft; edit: Edit | 
           <Label>Cómo se mide</Label>
           <div className="flex items-start gap-2.5 rounded-2xl border border-line bg-surface p-3.5 text-[12px] leading-snug text-ink-2 shadow-soft">
             <Target size={15} className="mt-px shrink-0 text-accent" />
-            <span>
-              Por las <b className="font-semibold text-ink">reuniones programadas</b> que consigue, no por clics ni consultas. Cada reunión se informa a Meta para que aprenda a buscar gente que avanza.
-            </span>
+            {isBrand(d) ? (
+              <span>
+                Por las <b className="font-semibold text-ink">personas alcanzadas</b> y lo que cuesta llegar a 1.000, y por cuántas consultas nuevas{' '}
+                <b className="font-semibold text-ink">nombran a MARQ</b>. No se espera que cierre reuniones.
+              </span>
+            ) : (
+              <span>
+                Por las <b className="font-semibold text-ink">reuniones programadas</b> que consigue, no por clics ni consultas. Cada reunión se informa a Meta para que aprenda a buscar gente que avanza.
+              </span>
+            )}
           </div>
         </motion.div>
       </motion.div>

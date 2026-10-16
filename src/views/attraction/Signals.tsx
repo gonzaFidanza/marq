@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, ArrowRight, BellRing, Check, MessageSquareQuote, ShieldCheck, Tag, TrendingDown } from 'lucide-react'
 import { isStale, useStore } from '../../store'
 import type { Contact } from '../../types'
-import { DEV_SIGNALS, PROFILES, PROFILE_SIGNALS, QUESTION_SIGNALS } from '../../data/attraction'
+import { BRAND_ASK_WHO, DEV_SIGNALS, PROFILES, PROFILE_SIGNALS, QUESTION_SIGNALS, RECOGNITION } from '../../data/attraction'
 import { DEV_STAGES, devById, stageById } from '../../data/config'
 import { OPPORTUNITY_DROP, RADAR_KINDS, radarForStage, radarOpportunities, stageWhen, upcomingStages, type RadarKind } from '../../data/pricing'
 import { Avatar, Kbd, SparkleIcon } from '../../components/ui'
@@ -200,6 +200,38 @@ export function Signals() {
             )
           })}
         </div>
+
+        {/* Reconocimiento de MARQ */}
+        <motion.div {...fade(8)} className="mt-7 mb-3">
+          <Title title="Qué tan conocida es MARQ" sub="Además de qué desarrollos avanzan, el asistente mide si la gente sabe quién está detrás del edificio" />
+        </motion.div>
+        <motion.div
+          {...fade(9)}
+          id="sig-brand"
+          key={focus === 'sig-brand' ? 'f' : 'n'}
+          className={cn(card, 'flex flex-wrap items-center gap-x-10 gap-y-4', focus === 'sig-brand' && 'glow-new')}
+        >
+          <div>
+            <p className="font-serif text-[40px] leading-none font-light tracking-tight text-ink">
+              <AnimatedNumber value={RECOGNITION[RECOGNITION.length - 1].pct} />
+              <span className="text-[20px] text-ink-3">%</span>
+            </p>
+            <p className="mt-1.5 max-w-[190px] text-[12px] leading-snug text-ink-2">de las consultas nombran a MARQ por su cuenta</p>
+          </div>
+          <div>
+            <p className="font-serif text-[40px] leading-none font-light tracking-tight text-ink">
+              <AnimatedNumber value={BRAND_ASK_WHO} />
+              <span className="text-[20px] text-ink-3">%</span>
+            </p>
+            <p className="mt-1.5 max-w-[190px] text-[12px] leading-snug text-ink-2">pregunta quién está detrás del edificio</p>
+          </div>
+          <p className="min-w-[240px] flex-1 text-[12.5px] leading-snug text-ink-2">
+            <SparkleIcon size={14} className="mr-1.5 inline align-[-2px]" />
+            La gente conoce los edificios pero no siempre a la empresa. Una campaña de <b className="font-semibold text-ink">marca</b> no busca reuniones: busca que el
+            edificio se asocie con MARQ.
+          </p>
+          <ProposeButton template="marq-inst" />
+        </motion.div>
 
         {/* Radar de oportunidades */}
         <motion.div {...fade(9)} id="sig-radar" className="mt-7 mb-3 flex items-end justify-between">

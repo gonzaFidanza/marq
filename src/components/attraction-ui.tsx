@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { animate } from 'framer-motion'
-import { Building2, Handshake, KeyRound, Megaphone, Sprout } from 'lucide-react'
+import { BadgeCheck, Building2, Handshake, KeyRound, Megaphone, Sprout } from 'lucide-react'
 import { useStore } from '../store'
-import type { Contact, Origin, Profile } from '../types'
-import { CAMPAIGN_COLOR, ORIGINS, PROFILES, originOf } from '../data/attraction'
+import type { CampaignObjective, Contact, Origin, Profile } from '../types'
+import { CAMPAIGN_COLOR, OBJECTIVES, ORIGINS, PROFILES, originOf } from '../data/attraction'
 import { devById } from '../data/config'
 import { cn } from '../lib/utils'
 import { Logo } from './ui'
@@ -20,6 +20,23 @@ export function ProfileChip({ value, size = 'sm' }: { value: Profile; size?: 'xs
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.color }} />
       {p.label}
+    </span>
+  )
+}
+
+/** Qué busca la campaña: consultas o que se conozca a MARQ */
+export function ObjectiveChip({ value, size = 'sm' }: { value: CampaignObjective; size?: 'xs' | 'sm' }) {
+  const o = OBJECTIVES[value]
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full font-medium whitespace-nowrap',
+        size === 'xs' ? 'px-1.5 py-px text-[10.5px]' : 'px-2 py-0.5 text-[11px]',
+      )}
+      style={{ background: o.color + '1c', color: o.color }}
+    >
+      {value === 'marca' ? <BadgeCheck size={size === 'xs' ? 10 : 11} strokeWidth={2.4} /> : <Megaphone size={size === 'xs' ? 10 : 11} strokeWidth={2.4} />}
+      {o.label}
     </span>
   )
 }

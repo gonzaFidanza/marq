@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
 import { create } from 'zustand'
-import type { Campaign, CampaignDraft, Channel, Classification, Contact, ConversionEvent, PendingPrice, PriceChange, RadarRetake, StageId, Toast } from './types'
+import type { Campaign, CampaignDraft, CampaignObjective, Channel, Classification, Contact, ConversionEvent, PendingPrice, PriceChange, RadarRetake, StageId, Toast } from './types'
 import { INITIAL_CONTACTS } from './data/mock'
-import { ATTRIBUTION, GEN_CYCLE, INITIAL_CAMPAIGNS, INITIAL_DRAFTS, adText, buildDraft, campaignNameFor, resegment } from './data/attraction'
+import { ATTRIBUTION, GEN_CYCLE, INITIAL_CAMPAIGNS, INITIAL_DRAFTS, adText, brandVariant, buildDraft, campaignNameForDraft, consultasVariant, objectiveOf, resegment } from './data/attraction'
 import { SIMULATIONS } from './data/simulations'
 import { CHANNELS, CLASSIFICATIONS, DEV_STAGES, INITIAL_PRICES, devById, listPriceKey, priceKey, stageById, type PriceList } from './data/config'
 import { LISTING_PORTALS, PRICE_DEMOS, affectedBy, alternativeFor, arrivesLate, fillPrices, radarDraft, radarReply, roundPrice, stageDraft, stageWhen, timelineDraft, tokenizePrices, upcomingStages } from './data/pricing'
@@ -94,6 +94,7 @@ interface State {
   generateCampaign: (template?: string) => void
   approveDraft: (id: string) => void
   saveDraftEdit: (id: string, v: { text: string; budget: number; days: number }) => void
+  setDraftObjective: (id: string, objective: CampaignObjective) => void
   requestDraftDiscard: (id: string) => void
   confirmDraftDiscard: (reason: string) => void
   cancelDraftDiscard: () => void
@@ -396,7 +397,7 @@ export const useStore = create<State>((set, get) => {
       if (!d || d.status === 'aprobado' || d.status === 'descartado') return
       const campaign: Campaign = {
         id: `c-${d.id}`,
-        name: campaignNameFor(d.template),
+        name: campaignNameForDraft(d),
         developmentId: d.developmentId,
         typology: d.typology,
         profile: d.profile,
@@ -411,6 +412,8 @@ export const useStore = create<State>((set, get) => {
         reservations: 0,
         conversions: [],
         adText: adText(d.segments),
+        objective: objectiveOf(d),
+        ...(d.objective === 'marca' ? { reach: 0, impressions: 0 } : {}),
         fresh: true,
       }
       set((s) => ({
@@ -427,6 +430,19 @@ export const useStore = create<State>((set, get) => {
         if (get().view === 'attraction') set({ attractionTab: 'campanas' })
       }, 1600)
       setTimeout(() => set((s) => ({ campaigns: s.campaigns.map((c) => (c.id === campaign.id ? { ...c, fresh: false } : c)) })), 8000)
+    },
+
+    setDraftObjective: (id, objective) => {
+      set((s) => ({
+        drafts: s.drafts.map((d) => {
+          if (d.id !== id || objectiveOf(d) === objective) return d
+          const from = objectiveOf(d)
+          const leaving = { segments: d.segments, cta: d.cta, reasoning: d.reasoning, profile: d.profile }
+          const next =
+            d.stash?.[objective] ?? (objective === 'marca' ? brandVariant(d.developmentId, d.budget, d.days) : consultasVariant(d.developmentId, d.typology, d.budget, d.days))
+          return { ...d, ...next, objective, stash: { ...d.stash, [from]: leaving } }
+        }),
+      }))
     },
 
     saveDraftEdit: (id, v) => {

@@ -80,6 +80,8 @@ export interface Contact {
 export type Origin = 'campana' | 'recomendacion' | 'organico' | 'portal' | 'cliente'
 export type Profile = 'primera' | 'inversor' | 'conocido' | 'recomendado' | 'amplio'
 export type CampaignStatus = 'activa' | 'pausada' | 'finalizada'
+/** Qué busca la campaña: consultas que avancen, o que se conozca a MARQ */
+export type CampaignObjective = 'consultas' | 'marca'
 export type ConversionEvent = 'Reunión programada' | 'Reunión realizada' | 'Reserva'
 
 export interface Conversion {
@@ -108,6 +110,10 @@ export interface Campaign {
   conversions: Conversion[]
   adText: string
   fresh?: boolean
+  objective?: CampaignObjective
+  /** Solo marca: personas distintas alcanzadas e impresiones totales */
+  reach?: number
+  impressions?: number
   /** Costo por reunión antes de la última conversión, para animar la baja */
   prevCpm?: number
   droppedAt?: number
@@ -118,6 +124,14 @@ export interface AdSegment {
   t: string
   q?: string
   pct?: number
+}
+
+/** Lo que cambia en un borrador al cambiar de objetivo */
+export interface DraftVariant {
+  segments: AdSegment[]
+  cta: 'Enviar mensaje' | 'Más información'
+  reasoning: string
+  profile: Profile
 }
 
 export type DraftStatus = 'pendiente' | 'aprobado' | 'editado' | 'descartado'
@@ -131,6 +145,9 @@ export interface CampaignDraft {
   budget: number
   days: number
   status: DraftStatus
+  objective?: CampaignObjective
+  /** Versión del otro objetivo, para volver sin perder lo que había */
+  stash?: Partial<Record<CampaignObjective, DraftVariant>>
   edited?: boolean
   createdAt: number
   segments: AdSegment[]

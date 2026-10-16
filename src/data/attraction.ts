@@ -1,8 +1,8 @@
-import type { AdSegment, Campaign, CampaignDraft, Contact, Conversion, Origin, Profile } from '../types'
-import { CLASSIFICATIONS, CHANNELS, devById, priceFor } from './config'
+import type { AdSegment, Campaign, CampaignDraft, CampaignObjective, Channel, Contact, Conversion, DraftVariant, Origin, Profile } from '../types'
+import { CLASSIFICATIONS, CHANNELS, DEVELOPMENTS, devById, priceFor } from './config'
 import { priceToken } from './pricing'
 import { D, H, MIN, NOW } from './mock'
-import { usd } from '../lib/utils'
+import { ars, usd } from '../lib/utils'
 
 /* ───────── Perfiles (mismos colores que la clasificación) */
 export const PROFILES: Record<Profile, { label: string; color: string; soft: string }> = {
@@ -23,6 +23,59 @@ export const ORIGINS: Record<Origin, { label: string; color: string }> = {
 }
 
 export const CAMPAIGN_COLOR = '#B5704F'
+
+/* ───────── Objetivo de la campaña: qué le pedimos a Meta */
+export const OBJECTIVES: Record<CampaignObjective, { label: string; color: string; blurb: string; measure: string }> = {
+  consultas: {
+    label: 'Consultas',
+    color: CAMPAIGN_COLOR,
+    blurb: 'Busca gente que escriba y avance hasta una reunión. Meta optimiza por mensajes.',
+    measure: 'reuniones programadas',
+  },
+  marca: {
+    label: 'Marca',
+    color: '#8A74B0',
+    blurb: 'Busca que más gente conozca a MARQ detrás de los edificios. Meta optimiza por alcance.',
+    measure: 'personas alcanzadas',
+  },
+}
+
+export const isBrand = (x: { objective?: CampaignObjective }) => x.objective === 'marca'
+export const objectiveOf = (x: { objective?: CampaignObjective }): CampaignObjective => x.objective ?? 'consultas'
+
+/** Personas alcanzadas por cada 1.000 pesos invertidos, al revés: lo que cuesta llegar a 1.000 personas */
+export const cpr = (c: Pick<Campaign, 'spent' | 'reach'>) => (c.reach ? (c.spent / c.reach) * 1000 : 0)
+export const frequency = (c: Pick<Campaign, 'impressions' | 'reach'>) => (c.reach && c.impressions ? c.impressions / c.reach : 0)
+
+/* ───────── Reconocimiento de MARQ: lo que el asistente detecta en las conversaciones (datos de ejemplo) */
+const RECOGNITION_PCT = [18, 18, 19, 20, 21, 22, 27, 33]
+const RECOGNITION_TOTAL = [95, 97, 105, 105, 103, 98, 104, 104]
+export const RECOGNITION_START = '15 sep'
+export const RECOGNITION = ['4 ago', '11 ago', '18 ago', '25 ago', '1 sep', '8 sep', '15 sep', '22 sep'].map((week, i) => ({
+  week,
+  pct: RECOGNITION_PCT[i],
+  total: RECOGNITION_TOTAL[i],
+  named: Math.round((RECOGNITION_TOTAL[i] * RECOGNITION_PCT[i]) / 100),
+}))
+
+/** Cómo dicen que llegaron a conocer a MARQ (% de las consultas que lo mencionan) */
+export const HOW_THEY_KNEW = [
+  { label: 'Vieron el cartel de la obra', pct: 31 },
+  { label: 'Instagram y Facebook', pct: 27 },
+  { label: 'Una recomendación', pct: 22 },
+  { label: 'Portales inmobiliarios', pct: 12 },
+  { label: 'Buscaron en Google', pct: 8 },
+]
+
+/** Frases de ejemplo de conversaciones donde aparece MARQ por nombre o preguntan quién desarrolla */
+export const BRAND_PHRASES: { channel: Channel; text: string }[] = [
+  { channel: 'instagram', text: 'Vi el edificio de Colegiales, ¿quién lo desarrolla?' },
+  { channel: 'whatsapp', text: 'Mi cuñado compró con MARQ y me lo recomendó' },
+  { channel: 'portal', text: '¿MARQ es la que hizo el de Belgrano R?' },
+]
+
+/** Consultas que preguntan quién está detrás del edificio */
+export const BRAND_ASK_WHO = 46
 
 export function originOf(c: Pick<Contact, 'campaignId' | 'origin' | 'channel' | 'classification' | 'tags'>): Origin {
   if (c.campaignId) return 'campana'
@@ -146,6 +199,27 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     reservations: 1,
     adText: `Últimos 3 ambientes en Belgrano R, listos para mudarse. Desde ${priceToken('belgrano', '3 ambientes')}.`,
     conversions: [conv('Horacio V.', 'Reserva', 14 * D), conv('Lía B.', 'Reunión realizada', 18 * D)],
+  },
+  {
+    id: 'c-marq-inst',
+    name: 'MARQ, quién está detrás',
+    objective: 'marca',
+    developmentId: 'belgrano',
+    typology: '3 ambientes',
+    profile: 'amplio',
+    status: 'activa',
+    startedAt: NOW - 9 * D,
+    days: 21,
+    budget: 600_000,
+    spent: 262_000,
+    reach: 48_600,
+    impressions: 132_400,
+    inquiries: 0,
+    meetingsScheduled: 0,
+    meetingsDone: 0,
+    reservations: 0,
+    adText: 'Detrás de Belgrano R hay un nombre: MARQ. Desarrollamos en Colegiales, Villa Urquiza, Belgrano R y Núñez. Conocé MARQ.',
+    conversions: [],
   },
   {
     id: 'c-col-inv',
@@ -396,6 +470,19 @@ export const TEMPLATES: Record<string, () => Template> = {
       { id: 'sig-q-recomendado', label: 'Preguntas de recomendados' },
     ],
   }),
+  'marq-inst': () => ({
+    campaignName: 'MARQ, quién está detrás',
+    objective: 'marca',
+    developmentId: 'belgrano',
+    typology: '3 ambientes',
+    budget: 250_000,
+    days: 14,
+    ...brandVariant('belgrano', 250_000, 14),
+    signals: [
+      { id: 'sig-brand', label: `${BRAND_ASK_WHO}% pregunta quién está detrás` },
+      { id: 'sig-brand', label: 'Nombran a MARQ: 1 de cada 3' },
+    ],
+  }),
   'urq-amplio': () => ({
     campaignName: 'Villa Urquiza ampliación',
     developmentId: 'urquiza',
@@ -410,8 +497,45 @@ export const TEMPLATES: Record<string, () => Template> = {
   }),
 }
 
+/* ───────── Cambiar de objetivo: el texto, el CTA y el público cambian con él */
+const joinEs = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}` : (xs[0] ?? ''))
+
+export function brandVariant(developmentId: string, budget: number, days: number): DraftVariant {
+  const dev = devById(developmentId)
+  const where = joinEs(DEVELOPMENTS.map((x) => x.neighborhood))
+  return {
+    profile: 'amplio',
+    cta: 'Más información',
+    segments: [
+      { t: `Detrás de ${dev.neighborhood} hay un nombre: MARQ. ` },
+      q(`Desarrollamos en ${where}`, '¿Quién está detrás del edificio?', BRAND_ASK_WHO),
+      { t: '. ' },
+      q('Belgrano R ya está entregado y habitado', '¿Puedo ver un edificio terminado?', 38),
+      { t: '. Conocé MARQ.' },
+    ],
+    reasoning: `El ${BRAND_ASK_WHO}% de las consultas pregunta quién está detrás del edificio y solo 1 de cada 3 nombra a MARQ. Proponemos ${ars(budget)} por ${days} días para que el edificio se asocie con la empresa. Se mide por personas alcanzadas y costo cada 1.000, no por reuniones.`,
+  }
+}
+
+export function consultasVariant(developmentId: string, typology: string, budget: number, days: number): DraftVariant {
+  const dev = devById(developmentId)
+  return {
+    profile: 'amplio',
+    cta: 'Enviar mensaje',
+    segments: [{ t: `${typology} en ${dev.neighborhood}, desde ${priceToken(developmentId, typology)}. Escribinos y coordinamos una visita.` }],
+    reasoning: `Pasamos de dar a conocer a MARQ a conseguir consultas: ${ars(budget)} por ${days} días sobre ${typology} en ${dev.neighborhood}. Se mide por las reuniones programadas que consigue.`,
+  }
+}
+
+/** Nombre de la campaña al aprobar: el de la plantilla, salvo que se haya cambiado el objetivo */
+export function campaignNameForDraft(d: CampaignDraft) {
+  const own = TEMPLATES[d.template]()
+  if (objectiveOf(d) === objectiveOf(own)) return own.campaignName
+  return `${devById(d.developmentId).neighborhood} · ${d.objective === 'marca' ? 'marca MARQ' : 'consultas'}`
+}
+
 /** Orden en que el botón "Generar propuesta" va sacando borradores */
-export const GEN_CYCLE = ['urq-primera', 'col-mono-inv', 'nun-recomendado', 'bel-conocido']
+export const GEN_CYCLE = ['urq-primera', 'col-mono-inv', 'nun-recomendado', 'bel-conocido', 'marq-inst']
 
 let did = 0
 export function buildDraft(template: string, createdAt = Date.now(), extra: Partial<CampaignDraft> = {}): CampaignDraft {
@@ -424,6 +548,7 @@ export const campaignNameFor = (template: string) => TEMPLATES[template]().campa
 export const INITIAL_DRAFTS: CampaignDraft[] = [
   buildDraft('col-primera', NOW - 2 * H),
   buildDraft('nun-inversor', NOW - 5 * H - 20 * MIN),
+  buildDraft('marq-inst', NOW - 9 * H),
   buildDraft('bel-conocido', NOW - 1 * D - 3 * H),
   buildDraft('urq-amplio', NOW - 3 * D, { status: 'descartado', discardReason: 'Presupuesto muy alto' }),
 ]
