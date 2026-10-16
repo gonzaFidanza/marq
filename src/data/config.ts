@@ -180,6 +180,45 @@ export const DEVELOPMENTS: Development[] = [
       { label: 'Lote 600 m²', from: 25500 },
     ],
   },
+  {
+    id: 'casasbdn',
+    name: 'Casas BDN',
+    neighborhood: 'Casas BDN',
+    address: 'Brisas del Norte',
+    status: 'Casa y terreno · 4 modelos',
+    delivery: 'Entrega 2027',
+    progress: 40,
+    stage: 'obra',
+    kind: 'casas',
+    deliveryAt: on(2027, 6),
+    image: photo('casasbdn'),
+    imagePos: 'center 55%',
+    gradient: 'linear-gradient(135deg,#d6d3c9 0%,#8d98a3 55%,#3f4b58 100%)',
+    // Los valores de las casas no figuran en el sitio: son ilustrativos hasta que MARQ los confirme
+    typologies: [
+      { label: 'Base 2 amb.', from: 85000 },
+      { label: 'Media 3 amb.', from: 115000 },
+      { label: 'Full 4 amb.', from: 150000 },
+      { label: 'Full Max 5 amb.', from: 195000 },
+    ],
+  },
+  {
+    id: 'duplexaires',
+    name: 'Dúplex Aires',
+    neighborhood: 'Dúplex Aires',
+    address: 'Brisas del Norte',
+    status: 'Preventa · dúplex',
+    delivery: 'Entrega 2027',
+    progress: 15,
+    stage: 'pozo',
+    kind: 'casas',
+    deliveryAt: on(2027, 12),
+    image: photo('duplexaires'),
+    imagePos: 'center 50%',
+    gradient: 'linear-gradient(135deg,#e2d6c2 0%,#a9a07f 55%,#5b5a3c 100%)',
+    // Valor ilustrativo: el sitio no publica el precio
+    typologies: [{ label: 'Dúplex 3 amb.', from: 98000 }],
+  },
 ]
 
 export const devById = (id: string) => DEVELOPMENTS.find((d) => d.id === id) ?? DEVELOPMENTS[0]

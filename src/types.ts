@@ -177,7 +177,7 @@ export interface Development {
   /** Próximo cambio de etapa y cuánto suben los valores */
   nextStage?: { to: DevStage; at: number; increase: number }
   /** Edificio de departamentos o loteo: cambia cómo se nombra la unidad */
-  kind: 'edificio' | 'loteo'
+  kind: 'edificio' | 'loteo' | 'casas'
   /** Entrega inicial, cuotas y descuento por pago contado, si lo hay */
   financing?: { entrega: number; cuotas: number; contado?: number }
   /** Qué parte de la foto mostrar cuando se recorta (CSS object-position) */

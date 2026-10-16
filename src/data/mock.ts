@@ -121,7 +121,7 @@ export const INITIAL_CONTACTS: Contact[] = [
       h('08 mar', 'Primera consulta por Instagram', 'consulta', '3 ambientes · Torre Natalini'),
     ],
     draft:
-      `Hola Martina, ¡qué bueno volver a saber de vos! Me acuerdo que en marzo vinieron a recorrer la torre para ver los 3 ambientes. Te cuento: todavía quedan dos unidades con balcón al frente (pisos 14 y 17), desde ${priceToken('natalini', '3 ambientes')}, con la misma forma de pago. ¿Querés que te mande los planos actualizados y coordinamos una llamada esta semana?`,
+      `Hola Martina, ¡qué bueno volver a saber de vos! Me acuerdo que en marzo vinieron a recorrer la torre para ver los 3 ambientes. Te cuento: todavía tenemos publicados 3 ambientes con balcón al frente (pisos 14 y 17), desde ${priceToken('natalini', '3 ambientes')}, con la misma forma de pago. ¿Querés que te mande los planos actualizados y coordinamos una llamada esta semana?`,
     draftKind: 'respuesta',
   },
 
@@ -158,7 +158,7 @@ export const INITIAL_CONTACTS: Contact[] = [
       h('Hace 7 días', 'Primera consulta por WhatsApp', 'consulta'),
     ],
     draft:
-      `Hola Martín, ¿cómo estás? Te escribo porque se liberó un 2 ambientes en Torre Natalini, piso 9 con balcón, que para renta temporaria funciona muy bien. Está en ${priceToken('natalini', '2 ambientes')} y la entrega es inmediata. ¿Querés que te lo reserve 48 hs mientras lo mirás?`,
+      `Hola Martín, ¿cómo estás? Te escribo porque tenemos publicado el 2 ambientes del piso 5 de Torre Natalini, de 61 m² con balcón, que para renta temporaria funciona muy bien. Está en ${priceToken('natalini', '2 ambientes')} y la entrega es inmediata. ¿Querés que te lo reserve 48 hs mientras lo mirás?`,
     draftKind: 'retomar',
   },
   {
@@ -217,7 +217,7 @@ export const INITIAL_CONTACTS: Contact[] = [
       ),
       m(
         'a',
-        'Hola Diego, sí, nos quedan dos unidades de 3 ambientes desde USD 245.000. ¡Qué bueno que ya publicaste la casa! Cuando tengas novedades de la venta, vemos un esquema de pago que acompañe esos plazos.',
+        'Hola Diego, sí, tenemos 3 ambientes, como el del piso 17, desde USD 245.000. ¡Qué bueno que ya publicaste la casa! Cuando tengas novedades de la venta, vemos un esquema de pago que acompañe esos plazos.',
         9 * D + 2 * H,
         { by: 'tomas', viaDraft: true },
       ),
@@ -227,8 +227,36 @@ export const INITIAL_CONTACTS: Contact[] = [
       h('Nov 2025', 'Consulta por WhatsApp', 'consulta', 'Condicionada a la venta de su casa'),
     ],
     draft:
-      'Hola Diego, ¿cómo va todo? Te escribo para contarte que una de las dos unidades de 3 ambientes en Torre Natalini ya se reservó, así que queda solo la del piso 17. Si todavía estás con la venta de la casa, podemos ver un esquema de pago que contemple ese plazo. ¿Te llamo mañana?',
+      'Hola Diego, ¿cómo va todo? Te escribo para saber cómo viene la venta de la casa. Te cuento que el 3 ambientes del piso 17 de Torre Natalini sigue publicado; cuando tengas novedades vemos un esquema de pago que contemple ese plazo. ¿Te llamo mañana?',
     draftKind: 'retomar',
+  },
+
+  {
+    id: 'hector',
+    name: 'Héctor Villalba',
+    channel: 'mail',
+    email: 'hvillalba@gmail.com',
+    classification: 'nuevo',
+    confidence: 0.78,
+    tags: ['Busca dúplex', 'Inversor', 'Pago en USD'],
+    developmentId: 'duplexaires',
+    typology: 'Dúplex 3 amb.',
+    stage: 'respondida',
+    stageSince: NOW - 4 * D,
+    assignee: 'tomas',
+    unread: 0,
+    hue: 70,
+    summary: 'Inversor, mira el dúplex de 3 ambientes de Aires para alquilar. Le mandamos la ficha y falta que responda.',
+    messages: [
+      m('c', 'Buenas tardes. Vi el proyecto Dúplex Aires en la web. ¿Qué valores manejan y cuándo sería la entrega? Lo pienso para alquilar.', 4 * D + 5 * H),
+      m(
+        'a',
+        'Hola Héctor, gracias por escribirnos. Dúplex Aires está en preventa dentro de Brisas del Norte, con entrega prevista para 2027. Te adjunto la ficha con valores y plantas. ¿Lo evaluás para alquiler a largo plazo?',
+        4 * D + 4 * H,
+        { by: 'tomas', viaDraft: true },
+      ),
+    ],
+    history: [h('Hace 4 días', 'Primera consulta por mail', 'consulta', 'Dúplex Aires · desde la web')],
   },
 
   // ───────────── En conversación
@@ -361,6 +389,36 @@ export const INITIAL_CONTACTS: Contact[] = [
       m('c', 'Buenísimo, lo hablo con mi socio y te digo', 6 * D + 2 * H),
     ],
     history: [h('Hace 6 días', 'Primera consulta por Instagram', 'consulta')],
+  },
+
+  {
+    id: 'marcela',
+    name: 'Marcela Rojas',
+    channel: 'whatsapp',
+    phone: '+54 9 362 415-6620',
+    classification: 'nuevo',
+    confidence: 0.85,
+    tags: ['Casa y terreno', 'Busca 3 ambientes', 'Familia'],
+    developmentId: 'casasbdn',
+    typology: 'Media 3 amb.',
+    stage: 'conversacion',
+    stageSince: NOW - 3 * D,
+    assignee: 'julieta',
+    unread: 0,
+    hue: 120,
+    summary: 'Busca casa con terreno en un barrio costero. Le interesa el modelo Media de 3 ambientes y pregunta cómo se paga.',
+    messages: [
+      m('c', 'Hola! Vi las Casas BDN en Instagram. ¿El valor incluye el terreno?', 3 * D + 4 * H),
+      m(
+        'a',
+        'Hola Marcela! Sí, Casas BDN es casa y terreno dentro de Brisas del Norte, el barrio costero con laguna. Hay modelos de 2 a 5 ambientes. ¿Cuántos son en la familia?',
+        3 * D + 3 * H,
+        { by: 'julieta', viaDraft: true },
+      ),
+      m('c', 'Somos 5, creo que el de 3 ambientes nos queda justo. ¿Se puede recorrer el barrio?', 3 * D + 2 * H),
+      m('a', 'Claro, coordinamos una recorrida por el barrio y por el modelo. Atendemos de lunes a viernes, de 8 a 12:30 y de 15 a 19.', 3 * D + H, { by: 'julieta' }),
+    ],
+    history: [h('Hace 3 días', 'Primera consulta por WhatsApp', 'consulta', 'Casas BDN · Media 3 amb.')],
   },
 
   // ───────────── Reunión programada

@@ -44,10 +44,10 @@ export const SIMULATIONS: SimTemplate[] = [
     summary:
       'Llegó desde la campaña Torre Natalini 1ª vivienda. El anuncio ya le respondió lo del crédito: pregunta directo por una unidad y quiere visitar.',
     incoming: [
-      'Hola! Vi el anuncio del 2 ambientes en Torre Natalini 🙌 Ya tengo el crédito preaprobado en el Nuevo Banco del Chaco. ¿Sigue disponible el del piso 9? ¿Puedo ir a verlo esta semana?',
+      'Hola! Vi el anuncio del 2 ambientes en Torre Natalini 🙌 Ya tengo el crédito preaprobado en el Nuevo Banco del Chaco. ¿Sigue disponible el del piso 5? ¿Puedo ir a verlo esta semana?',
     ],
     history: [{ id: 'sh20', date: 'Ahora', title: 'Primera consulta por Instagram', kind: 'consulta', detail: 'Desde anuncio · Camp. Torre Natalini 1ª vivienda' }],
-    draft: `¡Hola Lautaro! Qué bueno que ya tengas el crédito preaprobado 🙌 El 2 ambientes del piso 9 sigue disponible: es luminoso y con balcón, a ${priceToken('natalini', '2 ambientes')}. Te propongo que vengas a verlo y de paso revisamos juntos los plazos de escritura con el banco. ¿Te queda bien el jueves a las 18?`,
+    draft: `¡Hola Lautaro! Qué bueno que ya tengas el crédito preaprobado 🙌 El 2 ambientes del piso 5 sigue disponible: son 61 m² con balcón, a ${priceToken('natalini', '2 ambientes')}. Te propongo que vengas a verlo y de paso revisamos juntos los plazos de escritura con el banco. ¿Te queda bien el jueves a las 18?`,
     draftKind: 'respuesta',
     followUp: {
       text: '¡Genial! Jueves 18 me viene perfecto, voy con mi pareja 🙂',
@@ -154,7 +154,7 @@ export const SIMULATIONS: SimTemplate[] = [
       { id: 'sh8', date: '20 jun', title: 'Se enviaron planos y ficha', kind: 'mensaje', detail: '3 amb piso 17 · USD 245.000' },
       { id: 'sh9', date: '18 jun', title: 'Primera consulta por mail', kind: 'consulta' },
     ],
-    draft: `Hola Laura, ¡qué buena noticia, felicitaciones por la venta! Me acuerdo de tu consulta de junio por el 3 ambientes del piso 17 de Torre Natalini: te cuento que sigue disponible y mantiene el valor de ${priceToken('natalini', '3 ambientes')} si reservás este mes. ¿Querés que coordinemos una visita esta semana para avanzar con la reserva?`,
+    draft: `Hola Laura, ¡qué buena noticia, felicitaciones por la venta! Me acuerdo de tu consulta de junio por el 3 ambientes del piso 17 de Torre Natalini: te cuento que sigue disponible y está en ${priceToken('natalini', '3 ambientes')}. ¿Querés que coordinemos una visita esta semana para avanzar con la reserva?`,
     draftKind: 'respuesta',
   },
   {
@@ -194,5 +194,26 @@ export const SIMULATIONS: SimTemplate[] = [
     draft:
       `Hola Hernán, gracias por escribirnos. Los 3 ambientes de Torre Natalini, con balcón y cochera, arrancan en ${priceToken('natalini', '3 ambientes')}, un poco por encima de tu presupuesto: lo vemos con las formas de pago y la permuta si tenés una propiedad. Y si te interesa construir tu propia casa, en Gran Arboledas los lotes arrancan en ${priceToken('arboledas', 'Lote 300 m²')}. ¿Te mando los planos y coordinamos una llamada?`,
     draftKind: 'respuesta',
+  },
+  {
+    name: 'Rodrigo Sánchez',
+    channel: 'instagram',
+    handle: '@rodri.sanchez',
+    classification: 'nuevo',
+    confidence: 0.85,
+    tags: ['Casa y terreno', 'Busca 4 ambientes'],
+    developmentId: 'casasbdn',
+    typology: 'Full 4 amb.',
+    hue: 140,
+    summary: 'Pregunta si el valor de la casa de 4 ambientes incluye el terreno y si se puede financiar.',
+    incoming: ['Hola! Vi las Casas BDN en Brisas del Norte. ¿El valor de la casa de 4 ambientes incluye el terreno? ¿Se puede financiar?'],
+    history: [{ id: 'sh30', date: 'Ahora', title: 'Primera consulta por Instagram', kind: 'consulta', detail: 'Casas BDN · Full 4 amb.' }],
+    draft: `¡Hola Rodrigo! Gracias por escribirnos 😊 Casas BDN es casa y terreno dentro de Brisas del Norte, el barrio costero con laguna. El modelo Full de 4 ambientes arranca en ${priceToken('casasbdn', 'Full 4 amb.')} con el terreno incluido, y vemos juntos las formas de pago. ¿Querés recorrer el barrio y ver cómo quedan las casas? Te propongo el martes a la mañana.`,
+    draftKind: 'respuesta',
+    followUp: {
+      text: 'Dale, el martes a las 10 puedo. Voy con mi señora 🙌',
+      delay: 4200,
+      meeting: { label: 'Martes 10:00', detail: 'Recorrida por Brisas del Norte' },
+    },
   },
 ]

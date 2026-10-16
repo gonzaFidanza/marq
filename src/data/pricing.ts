@@ -70,10 +70,12 @@ const plural = (typology: string) => {
   if (typology === 'Macrolote') return 'macrolotes'
   if (typology.startsWith('Lote con')) return typology.replace('Lote', 'lotes')
   if (typology.startsWith('Lote ')) return typology.replace('Lote ', 'lotes de ')
+  if (typology.startsWith('Dúplex ')) return typology.replace('Dúplex ', 'dúplex de ')
+  if (/^(Base|Media|Full)/.test(typology)) return `modelos ${typology}`
   return typology
 }
 
-const unitOf = (dev: Development) => (dev.kind === 'loteo' ? 'lote' : 'unidad')
+const unitOf = (dev: Development) => (dev.kind === 'loteo' ? 'lote' : dev.kind === 'casas' ? 'casa' : 'unidad')
 
 const sameTypology = (contactTypology: string, typology: string) =>
   contactTypology === typology || contactTypology.startsWith(typology + ' ')

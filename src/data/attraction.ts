@@ -196,7 +196,7 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
     meetingsScheduled: 5,
     meetingsDone: 4,
     reservations: 1,
-    adText: `Últimos 3 ambientes en Torre Natalini, listos para mudarse. Desde ${priceToken('natalini', '3 ambientes')}.`,
+    adText: `Últimas unidades en Torre Natalini: 2, 3 y 4 ambientes, listos para mudarse. 3 ambientes desde ${priceToken('natalini', '3 ambientes')}.`,
     conversions: [conv('Horacio V.', 'Reserva', 14 * D), conv('Lía B.', 'Reunión realizada', 18 * D)],
   },
   {
@@ -267,6 +267,7 @@ export const DEV_SIGNALS = [
   { developmentId: 'brisas', typology: 'Lote con costa', inquiries: 30, meetings: 10 },
   { developmentId: 'arboledas', typology: 'Lote 300 m²', inquiries: 34, meetings: 7 },
   { developmentId: 'natalini', typology: '3 ambientes', inquiries: 16, meetings: 6 },
+  { developmentId: 'casasbdn', typology: 'Media 3 amb.', inquiries: 28, meetings: 9 },
   { developmentId: 'pueblomio', typology: 'Lote 600 m²', inquiries: 16, meetings: 4 },
   { developmentId: 'pueblomio', typology: 'Lote 400 m²', inquiries: 38, meetings: 3 },
 ]
@@ -385,7 +386,7 @@ export const TEMPLATES: Record<string, () => Template> = {
     days: 10,
     cta: 'Enviar mensaje',
     segments: [
-      { t: 'Volvé a elegir MARQ: últimos 3 ambientes en Torre Natalini, listos para mudarse. ' },
+      { t: 'Volvé a elegir MARQ: últimas unidades en Torre Natalini, listas para mudarse. ' },
       q('Como cliente MARQ mantenés tu 3% de beneficio', '¿Mantengo el beneficio de cliente?', 52),
       { t: ' y ' },
       q('podés entregar tu propiedad actual como parte de pago', '¿Puedo entregar mi propiedad como parte de pago?', 31),
@@ -482,6 +483,28 @@ export const TEMPLATES: Record<string, () => Template> = {
       { id: 'sig-brand', label: 'Nombran a MARQ: 1 de cada 3' },
     ],
   }),
+  'bdn-casas': () => ({
+    campaignName: 'Casas BDN tu casa y tu terreno',
+    developmentId: 'casasbdn',
+    typology: 'Media 3 amb.',
+    profile: 'primera',
+    budget: 320_000,
+    days: 14,
+    cta: 'Enviar mensaje',
+    segments: [
+      { t: 'Tu casa y tu terreno en Brisas del Norte, el barrio costero con laguna. ' },
+      q('Modelos de 2 a 5 ambientes', '¿Qué modelos hay?', 47),
+      { t: `. Desde ${priceToken('casasbdn', 'Base 2 amb.')}, ` },
+      q('con el terreno incluido', '¿El valor incluye el terreno?', 52),
+      { t: '. Escribinos y recorremos el barrio.' },
+    ],
+    reasoning:
+      'Casas BDN suma consultas de familias que preguntan si el valor incluye el terreno y qué modelos hay. Probamos ARS 320.000 por 14 días con esas dos respuestas en el anuncio.',
+    signals: [
+      { id: 'sig-dev', label: 'Casas BDN 3 amb · 32% llega a reunión' },
+      { id: 'sig-q-primera', label: 'Preguntas de primera vivienda' },
+    ],
+  }),
   'pm-amplio': () => ({
     campaignName: 'Pueblo Mío ampliación',
     developmentId: 'pueblomio',
@@ -501,7 +524,7 @@ const joinEs = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')}
 
 export function brandVariant(developmentId: string, budget: number, days: number): DraftVariant {
   const dev = devById(developmentId)
-  const all = joinEs(DEVELOPMENTS.map((x) => x.name))
+  const all = joinEs(DEVELOPMENTS.slice(0, 4).map((x) => x.name))
   return {
     profile: 'amplio',
     cta: 'Más información',
@@ -534,7 +557,7 @@ export function campaignNameForDraft(d: CampaignDraft) {
 }
 
 /** Orden en que el botón "Generar propuesta" va sacando borradores */
-export const GEN_CYCLE = ['pm-primera', 'arb-inversor', 'arb-recomendado', 'nat-conocido', 'marq-inst']
+export const GEN_CYCLE = ['pm-primera', 'arb-inversor', 'arb-recomendado', 'bdn-casas', 'nat-conocido', 'marq-inst']
 
 let did = 0
 export function buildDraft(template: string, createdAt = Date.now(), extra: Partial<CampaignDraft> = {}): CampaignDraft {
