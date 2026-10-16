@@ -99,8 +99,8 @@ export function Signals() {
                 )
               })}
             </div>
-            <Insight template="urq-primera">
-              <b className="font-semibold text-ink">Villa Urquiza 2 ambientes</b> es la 2ª en consultas pero la última en reuniones: solo 8 de cada 100 llegan a sentarse con el equipo.
+            <Insight template="pm-primera">
+              <b className="font-semibold text-ink">Pueblo Mío · lote de 400 m²</b> es la 2ª en consultas pero la última en reuniones: solo 8 de cada 100 llegan a sentarse con el equipo.
             </Insight>
           </motion.div>
 
@@ -144,7 +144,7 @@ export function Signals() {
               })}
             </div>
             <div className="mt-auto">
-              <Insight template="bel-conocido">
+              <Insight template="nat-conocido">
                 Clientes conocidos y recomendados avanzan más que nadie, y hoy <b className="font-semibold text-ink">casi no reciben pauta</b>.
               </Insight>
             </div>

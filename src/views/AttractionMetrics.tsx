@@ -11,11 +11,11 @@ import { ChartTitle, Counter, Kpi, card, fade } from './Metrics'
 
 /** Proporción consulta → reunión por campaña y por perfil del contacto (mock) */
 const HEAT: Record<string, Partial<Record<Profile, number>>> = {
-  'c-col-1v': { primera: 31, inversor: 14, conocido: 40, recomendado: 33 },
-  'c-urq-amp': { primera: 6, inversor: 3, conocido: 18, recomendado: 12 },
-  'c-nun-inv': { primera: 20, inversor: 34, conocido: 38, recomendado: 25 },
-  'c-bel-ult': { primera: 9, inversor: 7, conocido: 22, recomendado: 15 },
-  'c-col-inv': { primera: 22, inversor: 11, conocido: 30, recomendado: 25 },
+  'c-nat-1v': { primera: 31, inversor: 14, conocido: 40, recomendado: 33 },
+  'c-pm-amp': { primera: 6, inversor: 3, conocido: 18, recomendado: 12 },
+  'c-bdn-inv': { primera: 20, inversor: 34, conocido: 38, recomendado: 25 },
+  'c-nat-ult': { primera: 9, inversor: 7, conocido: 22, recomendado: 15 },
+  'c-arb-1l': { primera: 22, inversor: 11, conocido: 30, recomendado: 25 },
 }
 const HEAT_COLS: Profile[] = ['primera', 'inversor', 'conocido', 'recomendado']
 

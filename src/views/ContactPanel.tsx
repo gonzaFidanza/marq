@@ -117,6 +117,7 @@ export function ContactPanel({ c }: { c: Contact }) {
               <img
                 src={dev.image}
                 alt=""
+                style={{ objectPosition: dev.imagePos }}
                 className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                 onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
               />

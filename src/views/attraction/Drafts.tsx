@@ -37,11 +37,11 @@ const STATUS: Record<DraftStatus, { label: string; color: string }> = {
 }
 
 const PROFILE_DESC: Record<string, string> = {
-  primera: 'Personas de 25 a 40 años que buscan su primera vivienda en CABA y consultan por crédito hipotecario.',
-  inversor: 'Inversores que buscan renta en pozo o en obra, atentos a rentabilidad y cesión de boleto.',
+  primera: 'Personas de 25 a 40 años que buscan su primera vivienda o su primer lote en el Gran Resistencia y consultan por financiación.',
+  inversor: 'Inversores que buscan valorización en lotes y preventa, atentos a cuánto suben con cada etapa y a la cesión de boleto.',
   conocido: 'Clientes MARQ y personas con un perfil parecido al de ellos.',
   recomendado: 'Personas parecidas a quienes llegaron recomendados por un cliente MARQ.',
-  amplio: 'Sin segmentar por perfil: todo CABA y GBA norte, de 25 a 65 años.',
+  amplio: 'Sin segmentar por perfil: todo el Gran Resistencia y Corrientes, de 25 a 65 años.',
 }
 
 const GEN_STEPS = ['Leyendo conversaciones…', 'Analizando el tablero…', 'Detectando preguntas frecuentes…']

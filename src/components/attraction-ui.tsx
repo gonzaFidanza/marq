@@ -127,6 +127,7 @@ export function DevImage({ id, className, children }: { id: string; className?: 
       <img
         src={dev.image}
         alt=""
+        style={{ objectPosition: dev.imagePos }}
         className="h-full w-full object-cover"
         onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
       />

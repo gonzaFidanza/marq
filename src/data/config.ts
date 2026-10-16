@@ -73,7 +73,8 @@ export const DISCARD_REASONS = [
   'Solo curioseaba',
 ]
 
-const u = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=800&q=70`
+/** Fotos originales de los desarrollos, tomadas del sitio de Estudio Marq (public/dev) */
+const photo = (name: string) => `${import.meta.env.BASE_URL}dev/${name}.webp`
 
 /** Primer día del mes */
 const on = (year: number, month: number) => new Date(year, month - 1, 1).getTime()
@@ -89,86 +90,94 @@ const inDays = (n: number) => {
 export const fitsTimeline = (dev: Development, t?: Timeline) => (t?.by ? dev.deliveryAt <= t.by : null)
 
 export const DEV_STAGES: Record<DevStage, { label: string; short: string }> = {
-  pozo: { label: 'Pozo (preventa)', short: 'Pozo' },
-  obra: { label: 'En obra', short: 'Obra' },
+  pozo: { label: 'Preventa', short: 'Preventa' },
+  obra: { label: 'En desarrollo', short: 'Desarrollo' },
   terminado: { label: 'Terminado', short: 'Terminado' },
 }
 
 export const DEVELOPMENTS: Development[] = [
   {
-    id: 'colegiales',
-    name: 'MARQ Colegiales',
-    neighborhood: 'Colegiales',
-    address: 'Conesa 1250',
-    status: 'En obra',
-    delivery: 'Entrega dic. 2027',
-    progress: 46,
-    stage: 'obra',
-    deliveryAt: on(2027, 12),
-    nextStage: { to: 'terminado', at: on(2027, 12), increase: 0.1 },
-    anticipo: 0.3,
-    image: u('photo-1545324418-cc1a3fa10c00'),
-    gradient: 'linear-gradient(135deg,#c9b79c 0%,#8f9a78 55%,#4a5a3a 100%)',
-    typologies: [
-      { label: 'Monoambiente', from: 98000 },
-      { label: '2 ambientes', from: 142000 },
-      { label: '3 ambientes', from: 215000 },
-    ],
-  },
-  {
-    id: 'urquiza',
-    name: 'MARQ Villa Urquiza',
-    neighborhood: 'Villa Urquiza',
-    address: 'Av. Triunvirato 4450',
-    status: 'En pozo',
-    delivery: 'Entrega 2028',
-    progress: 12,
-    stage: 'pozo',
-    deliveryAt: on(2028, 6),
-    // Para la demo, el paso a obra siempre queda a tres semanas
-    nextStage: { to: 'obra', at: inDays(21), increase: 0.08 },
-    anticipo: 0.25,
-    image: u('photo-1486406146926-c627a92ad1ab'),
-    gradient: 'linear-gradient(135deg,#d8c7b0 0%,#b88f73 55%,#6d4d3d 100%)',
-    typologies: [
-      { label: '2 ambientes', from: 128000 },
-      { label: '3 ambientes', from: 189000 },
-    ],
-  },
-  {
-    id: 'belgrano',
-    name: 'MARQ Belgrano R',
-    neighborhood: 'Belgrano R',
-    address: 'Zapiola 2230',
+    id: 'natalini',
+    name: 'Torre Natalini',
+    neighborhood: 'Torre Natalini',
+    address: 'Formosa 485',
     status: 'Últimas unidades',
-    delivery: 'Entregado 2024',
+    delivery: 'Entrega inmediata',
     progress: 100,
     stage: 'terminado',
+    kind: 'edificio',
     deliveryAt: on(2024, 6),
-    image: u('photo-1600585154340-be6161a56a0c'),
+    image: photo('natalini'),
+    imagePos: 'center 28%',
     gradient: 'linear-gradient(135deg,#d6d3c9 0%,#8d98a3 55%,#3f4b58 100%)',
     typologies: [
-      { label: '3 ambientes', from: 265000 },
-      { label: '4 ambientes', from: 340000 },
+      { label: '2 ambientes', from: 135000 },
+      { label: '3 ambientes', from: 245000 },
+      { label: '4 ambientes', from: 310000 },
     ],
   },
   {
-    id: 'nunez',
-    name: 'MARQ Núñez',
-    neighborhood: 'Núñez',
-    address: 'Manuela Pedraza 2140',
-    status: 'En obra',
-    delivery: 'Entrega mar. 2027',
+    id: 'arboledas',
+    name: 'Gran Arboledas',
+    neighborhood: 'Gran Arboledas',
+    address: 'Av. Sarmiento 4650',
+    status: 'Lotes disponibles',
+    delivery: 'Escritura inmediata',
+    progress: 100,
+    stage: 'terminado',
+    kind: 'loteo',
+    deliveryAt: on(2025, 1),
+    financing: { entrega: 0.5, cuotas: 12, contado: 0.15 },
+    image: photo('arboledas'),
+    imagePos: 'center',
+    gradient: 'linear-gradient(135deg,#c9b79c 0%,#8f9a78 55%,#4a5a3a 100%)',
+    typologies: [
+      { label: 'Lote 300 m²', from: 22000 },
+      { label: 'Lote 400 m²', from: 26480 },
+      { label: 'Macrolote', from: 420000 },
+    ],
+  },
+  {
+    id: 'brisas',
+    name: 'Brisas del Norte',
+    neighborhood: 'Brisas del Norte',
+    address: 'J. M. de Rosas 3700',
+    status: 'En desarrollo · 77 lotes',
+    delivery: 'Cierre de obras mar. 2027',
     progress: 71,
     stage: 'obra',
+    kind: 'loteo',
     deliveryAt: on(2027, 3),
     nextStage: { to: 'terminado', at: on(2027, 3), increase: 0.07 },
-    anticipo: 0.3,
-    image: u('photo-1502672260266-1c1ef2d93688'),
+    financing: { entrega: 0.5, cuotas: 6, contado: 0.15 },
+    image: photo('brisas'),
+    imagePos: 'center 62%',
     gradient: 'linear-gradient(135deg,#e2d6c2 0%,#a9a07f 55%,#5b5a3c 100%)',
     typologies: [
-      { label: 'Monoambiente', from: 105000 },
-      { label: '2 ambientes', from: 158000 },
+      { label: 'Lote 10×20', from: 20200 },
+      { label: 'Lote con costa', from: 31000 },
+    ],
+  },
+  {
+    id: 'pueblomio',
+    name: 'Pueblo Mío',
+    neighborhood: 'Pueblo Mío',
+    address: 'A 10 min de Resistencia',
+    status: 'Preventa · 228 lotes',
+    delivery: 'Entrega de lotes 2028',
+    progress: 12,
+    stage: 'pozo',
+    kind: 'loteo',
+    deliveryAt: on(2028, 6),
+    // Para la demo, el paso a la etapa siguiente siempre queda a tres semanas
+    nextStage: { to: 'obra', at: inDays(21), increase: 0.08 },
+    financing: { entrega: 0.3, cuotas: 36 },
+    image: photo('pueblomio'),
+    imagePos: 'center 64%',
+    gradient: 'linear-gradient(135deg,#d8c7b0 0%,#b88f73 55%,#6d4d3d 100%)',
+    typologies: [
+      { label: 'Lote 400 m²', from: 17500 },
+      { label: 'Lote 600 m²', from: 25500 },
     ],
   },
 ]
@@ -188,10 +197,15 @@ export const priceKey = (developmentId: string, typology: string) => `${developm
 
 export const INITIAL_PRICES: PriceList = Object.fromEntries(PRICE_LIST.map((p) => [priceKey(p.developmentId, p.typology), p.from]))
 
-/** Tipología de la lista que corresponde a lo que busca un contacto ("Monoambiente ×2" → "Monoambiente") */
+/** Tipología de la lista que corresponde a lo que busca un contacto ("Lote 400 m² ×2" → "Lote 400 m²") */
 export const listTypology = (developmentId: string, typology: string) => {
   const dev = devById(developmentId)
-  return (dev.typologies.find((t) => t.label === typology) ?? dev.typologies.find((t) => typology.startsWith(t.label.split(' ')[0])) ?? dev.typologies[0]).label
+  return (
+    dev.typologies.find((t) => t.label === typology) ??
+    dev.typologies.find((t) => typology.startsWith(t.label + ' ')) ??
+    dev.typologies.find((t) => typology.startsWith(t.label.split(' ')[0])) ??
+    dev.typologies[0]
+  ).label
 }
 
 /** Clave en la lista de precios para lo que busca un contacto o anuncia una campaña */
