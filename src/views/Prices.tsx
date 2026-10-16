@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowDownRight, ArrowUpRight, Building2, Check, FileText, Info, Megaphone, Pencil, ShieldCheck, Tag, X } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Building2, Check, FileText, Globe, Info, Megaphone, Pencil, ShieldCheck, Tag, X } from 'lucide-react'
 import { isStale, useLastPriceChange, usePrice, useStore } from '../store'
 import type { Development, PendingPrice } from '../types'
 import { CHANNELS, DEVELOPMENTS, devById, listPriceKey, priceKey } from '../data/config'
-import { LISTING_PORTALS, affectedBy, radarFor, type RadarItem } from '../data/pricing'
+import { LISTING_PORTALS, WEBSITE, affectedBy, radarFor, type RadarItem } from '../data/pricing'
 import { CAMPAIGN_COLOR, campaignNameFor } from '../data/attraction'
 import { Avatar, Kbd, SparkleIcon, StagePill } from '../components/ui'
 import { AnimatedNumber, DevImage } from '../components/attraction-ui'
@@ -264,7 +264,7 @@ export function PriceImpactModal({ p }: { p: PendingPrice }) {
       else next.add(id)
       return next
     })
-  const total = hit.ads.length + hit.campaignDrafts.length + hit.replies.length + 1
+  const total = hit.ads.length + hit.campaignDrafts.length + hit.replies.length + 2
 
   return (
     <motion.div
@@ -334,6 +334,12 @@ export function PriceImpactModal({ p }: { p: PendingPrice }) {
                 title={`Avisos en ${LISTING_PORTALS.join(' y ')}`}
                 sub={`${p.typology} · ${dev.name}`}
               />
+              <Affected
+                icon={<Globe size={14} />}
+                color="#4E78A8"
+                title={WEBSITE.name}
+                sub={`${WEBSITE.host} · ${p.typology} · ${dev.name}`}
+              />
               {hit.campaignDrafts.map((d) => (
                 <Affected
                   key={d.id}
@@ -353,7 +359,7 @@ export function PriceImpactModal({ p }: { p: PendingPrice }) {
               ))}
             </div>
             <p className="mt-2 text-[11.5px] leading-relaxed text-ink-3">
-              Los mensajes ya enviados no cambian: quedan con el precio con el que salieron. La publicación en Meta y portales es simulada en el prototipo.
+              Los mensajes ya enviados no cambian: quedan con el precio con el que salieron. La publicación en Meta, portales y el sitio web es simulada en el prototipo.
             </p>
           </div>
 

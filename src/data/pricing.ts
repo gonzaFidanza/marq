@@ -28,6 +28,9 @@ export function tokenizePrices(text: string, prices: PriceList, developmentId: s
 /* ───────── Impacto de un cambio */
 export const LISTING_PORTALS = ['Zonaprop', 'Argenprop']
 
+/** Sitio web actual de Estudio Marq: se conecta a la lista de precios, así que un cambio también lo toca */
+export const WEBSITE = { name: 'Sitio web de Estudio Marq', host: 'estudiomarq.com.ar' }
+
 export function affectedBy(key: string, s: { campaigns: Campaign[]; drafts: CampaignDraft[]; contacts: Contact[] }) {
   return {
     ads: s.campaigns.filter((c) => c.status !== 'finalizada' && mentionsPrice(c.adText, key)),

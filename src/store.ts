@@ -5,7 +5,7 @@ import { INITIAL_CONTACTS } from './data/mock'
 import { ATTRIBUTION, GEN_CYCLE, INITIAL_CAMPAIGNS, INITIAL_DRAFTS, adText, brandVariant, buildDraft, campaignNameForDraft, consultasVariant, objectiveOf, resegment } from './data/attraction'
 import { SIMULATIONS } from './data/simulations'
 import { CHANNELS, CLASSIFICATIONS, DEV_STAGES, INITIAL_PRICES, devById, listPriceKey, priceKey, stageById, type PriceList } from './data/config'
-import { LISTING_PORTALS, PRICE_DEMOS, affectedBy, alternativeFor, arrivesLate, fillPrices, radarDraft, radarReply, roundPrice, stageDraft, stageWhen, timelineDraft, tokenizePrices, upcomingStages } from './data/pricing'
+import { LISTING_PORTALS, PRICE_DEMOS, WEBSITE, affectedBy, alternativeFor, arrivesLate, fillPrices, radarDraft, radarReply, roundPrice, stageDraft, stageWhen, timelineDraft, tokenizePrices, upcomingStages } from './data/pricing'
 import { celebrate, chime, firstName, usd } from './lib/utils'
 
 export type View = 'hoy' | 'inbox' | 'board' | 'attraction' | 'metrics'
@@ -590,6 +590,18 @@ export const useStore = create<State>((set, get) => {
       })
       const ads = hit.ads.length ? [`${hit.ads.length} ${hit.ads.length === 1 ? 'anuncio' : 'anuncios'} en Meta`] : []
       setTimeout(() => get().toast({ title: '↗ Avisos actualizados', body: [...ads, `avisos en ${LISTING_PORTALS.join(' y ')}`].join(' · '), tone: 'meta' }, 6000), 450)
+      setTimeout(
+        () =>
+          get().toast(
+            {
+              title: '↗ Sitio web actualizado',
+              body: `${devById(p.developmentId).name}, ${p.typology}: ${usd(p.to)} en ${WEBSITE.host}`,
+              tone: 'meta',
+            },
+            6000,
+          ),
+        850,
+      )
       if (radarIds.length)
         setTimeout(
           () =>
@@ -601,7 +613,7 @@ export const useStore = create<State>((set, get) => {
               },
               7000,
             ),
-          900,
+          1250,
         )
     },
 
